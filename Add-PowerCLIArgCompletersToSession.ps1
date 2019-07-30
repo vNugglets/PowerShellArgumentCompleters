@@ -1,7 +1,7 @@
 ## some code to create Argument Completers for parameters for some of the VMware PowerCLI cmdlets
 
-## all of the modules that are a part of the VMware.PowerCLI module
-$arrModulesOfVMwarePowerCLIModule = (Get-Module VMware.PowerCLI -ListAvailable).RequiredModules
+## all of the modules that are a part of the VMware.PowerCLI module; grouping by name and the selecting just the most recent version of each module (so as to avoid issue w/ using params that may have not existed in older module versions)
+$arrModulesOfVMwarePowerCLIModule = (Get-Module VMware.PowerCLI -ListAvailable).RequiredModules | Group-Object -Property Name | ForEach-Object {$_.Group | Sort-Object -Property Version | Select-Object -Last 1}
 
 ## VM or template name completer
 $sbGetVmOrTemplateNameCompleter = {
@@ -54,7 +54,7 @@ Register-ArgumentCompleter -CommandName Get-Cluster, Get-Datacenter, Get-Datasto
 
 
 
-## multiple inventory item name completer, like hostsystem, datastore
+## multiple inventory item name completer, like hostsystem, datastore; at last check, this snippet adds completers for 288 params across 238 cmdlets -- noice!
 ## could do datacenter, datastorecluster, cluster, vm, template, folder (InventoryLocation),
 $sbGetVIItemNameCompleter = {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
@@ -82,7 +82,10 @@ $sbGetVIItemNameCompleter = {
     } ## end foreach-object
 } ## end scriptblock
 
-Write-Output AddVMHost, Cluster, Datacenter, Datastore, DatastoreCluster, RemoveVMHost, ResourcePool, VApp, VM, VMHost | Foreach-Object {Register-ArgumentCompleter -CommandName (Get-Command -Module $arrModulesOfVMwarePowerCLIModule -ParameterName $_) -ParameterName $_ -ScriptBlock $sbGetVIItemNameCompleter}
+Write-Output AddVMHost, Cluster, Datacenter, Datastore, DatastoreCluster, RemoveVMHost, ResourcePool, VApp, VM, VMHost | Foreach-Object {
+    ## if there are any cmdlets from any loaded modules with the given parametername, register an arg completer
+    if ($arrCommandsOfInterest = Get-Command -Module $arrModulesOfVMwarePowerCLIModule -ParameterName $_ -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsOfInterest -ParameterName $_ -ScriptBlock $sbGetVIItemNameCompleter}
+} ## end ForEach-Object
 
 
 
