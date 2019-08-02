@@ -65,7 +65,7 @@ $sbGetVIItemNameCompleter = {
         "VM" {"VirtualMachine"}
         "Cluster" {"ClusterComputeResource"}
         "DatastoreCluster" {"StoragePod"}
-        default {$parameterName}  ## gets things like Datacenter,
+        default {$parameterName}  ## gets things like Datacenter, ResourcePool
     } ## end switch
     ## make the regex pattern to use for Name filtering for given View object (convert from globbing wildcard to regex pattern, to support globbing wildcard as input)
     $strNameRegex = if ($wordToComplete -match "\*") {$wordToComplete.Replace("*", ".*")} else {$wordToComplete}
@@ -98,6 +98,7 @@ $sbGeneralVIItemNameCompleter = {
     $strCommandNameToGetCompleters = Switch ($parameterName) {
         HostProfile {"Get-VMHostProfile"}
         Name {$commandName} ## if it's -Name param, use the $commandName that is for this invocation
+        OSCustomizationSpec {"Get-OSCustomizationSpec"}
         Role {"Get-VIRole"}
     } ## end hsh
     & $strCommandNameToGetCompleters @hshParamForGetVIItem | Sort-Object -Property Name | Foreach-Object {
@@ -110,8 +111,8 @@ $sbGeneralVIItemNameCompleter = {
     } ## end foreach-object
 } ## end scriptblock
 
-Write-Output HostProfile, Role | ForEach-Object {
+Write-Output HostProfile, Role, OSCustomizationSpec | ForEach-Object {
     ## if there are any cmdlets from any loaded modules with the given parametername, register an arg completer
     if ($arrCommandsOfInterest = Get-Command -Module $arrModulesOfVMwarePowerCLIModule -ParameterName $_ -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsOfInterest -ParameterName $_ -ScriptBlock $sbGeneralVIItemNameCompleter}
 } ## end ForEach-Object
-Register-ArgumentCompleter -CommandName Get-VIRole, Get-VMHostProfile -ParameterName Name -ScriptBlock $sbGeneralVIItemNameCompleter
+Register-ArgumentCompleter -CommandName Get-OSCustomizationSpec, Get-VIRole, Get-VMHostProfile -ParameterName Name -ScriptBlock $sbGeneralVIItemNameCompleter
