@@ -65,7 +65,7 @@ $sbGetVIItemNameCompleter = {
         "VM" {"VirtualMachine"}
         "Cluster" {"ClusterComputeResource"}
         "DatastoreCluster" {"StoragePod"}
-        default {$parameterName}
+        default {$parameterName}  ## gets things like Datacenter,
     } ## end switch
     ## make the regex pattern to use for Name filtering for given View object (convert from globbing wildcard to regex pattern, to support globbing wildcard as input)
     $strNameRegex = if ($wordToComplete -match "\*") {$wordToComplete.Replace("*", ".*")} else {$wordToComplete}
@@ -92,7 +92,9 @@ Write-Output AddVMHost, Cluster, Datacenter, Datastore, DatastoreCluster, Remove
 ## VIRole name completer
 $sbVIRoleNameCompleter = {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
-    Get-VIRole | Sort-Object -Property Name | Foreach-Object {
+    $hshParamForGetVIRole = @{}
+    if (-not [System.String]::isNullOrEmpty($wordToComplete)) {$hshParamForGetVIRole['Name'] = "${wordToComplete}*"}
+    Get-VIRole @hshParamForGetVIRole | Sort-Object -Property Name | Foreach-Object {
         New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
             $_.Name,    # CompletionText
             $_.Name,    # ListItemText
@@ -103,3 +105,4 @@ $sbVIRoleNameCompleter = {
 } ## end scriptblock
 
 Register-ArgumentCompleter -CommandName (Get-Command -Module VMware.VimAutomation.Core -ParameterName Role) -ParameterName Role -ScriptBlock $sbVIRoleNameCompleter
+Register-ArgumentCompleter -CommandName Get-VIRole -ParameterName Name -ScriptBlock $sbVIRoleNameCompleter
