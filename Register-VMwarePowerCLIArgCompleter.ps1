@@ -89,12 +89,18 @@ Write-Output AddVMHost, Cluster, Datacenter, Datastore, DatastoreCluster, Remove
 
 
 
-## VIRole name completer
-$sbVIRoleNameCompleter = {
+## Name completer for multiple things; Get-VIRole, Get-VMHostProfile
+$sbGeneralVIItemNameCompleter = {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
-    $hshParamForGetVIRole = @{}
-    if (-not [System.String]::isNullOrEmpty($wordToComplete)) {$hshParamForGetVIRole['Name'] = "${wordToComplete}*"}
-    Get-VIRole @hshParamForGetVIRole | Sort-Object -Property Name | Foreach-Object {
+    $hshParamForGetVIItem = @{}
+    if (-not [System.String]::isNullOrEmpty($wordToComplete)) {$hshParamForGetVIItem['Name'] = "${wordToComplete}*"}
+    ## the PowerCLI cmdlet name to use to get the completer values for this parameter
+    $strCommandNameToGetCompleters = Switch ($parameterName) {
+        HostProfile {"Get-VMHostProfile"}
+        Name {$commandName} ## if it's -Name param, use the $commandName that is for this invocation
+        Role {"Get-VIRole"}
+    } ## end hsh
+    & $strCommandNameToGetCompleters @hshParamForGetVIItem | Sort-Object -Property Name | Foreach-Object {
         New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
             $_.Name,    # CompletionText
             $_.Name,    # ListItemText
@@ -104,5 +110,8 @@ $sbVIRoleNameCompleter = {
     } ## end foreach-object
 } ## end scriptblock
 
-Register-ArgumentCompleter -CommandName (Get-Command -Module VMware.VimAutomation.Core -ParameterName Role) -ParameterName Role -ScriptBlock $sbVIRoleNameCompleter
-Register-ArgumentCompleter -CommandName Get-VIRole -ParameterName Name -ScriptBlock $sbVIRoleNameCompleter
+Write-Output HostProfile, Role | ForEach-Object {
+    ## if there are any cmdlets from any loaded modules with the given parametername, register an arg completer
+    if ($arrCommandsOfInterest = Get-Command -Module $arrModulesOfVMwarePowerCLIModule -ParameterName $_ -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsOfInterest -ParameterName $_ -ScriptBlock $sbGeneralVIItemNameCompleter}
+} ## end ForEach-Object
+Register-ArgumentCompleter -CommandName Get-VIRole, Get-VMHostProfile -ParameterName Name -ScriptBlock $sbGeneralVIItemNameCompleter
