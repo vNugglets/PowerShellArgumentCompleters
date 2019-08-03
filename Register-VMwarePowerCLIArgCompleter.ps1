@@ -6,7 +6,7 @@ $arrModulesOfVMwarePowerCLIModule = (Get-Module VMware.PowerCLI -ListAvailable).
 ## VM or template name completer
 $sbGetVmOrTemplateNameCompleter = {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
-    Get-View -ViewType VirtualMachine -Property Name, Runtime.Powerstate -Filter @{Name = "^${wordToComplete}"; "Config.Template" = ($commandName -ne "Get-VM").ToString()} | Sort-Object -Property Name | Foreach-Object {
+    Get-View -ViewType VirtualMachine -Property Name, Runtime.Powerstate -Filter @{Name = "^${wordToComplete}"; "Config.Template" = ($commandName -ne "Get-VM" -and $parameterName -ne "VM").ToString()} | Sort-Object -Property Name | Foreach-Object {
         New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
             $_.Name,    # CompletionText
             $_.Name,    # ListItemText
@@ -17,6 +17,10 @@ $sbGetVmOrTemplateNameCompleter = {
 } ## end scriptblock
 
 Register-ArgumentCompleter -CommandName Get-VM, Get-Template -ParameterName Name -ScriptBlock $sbGetVmOrTemplateNameCompleter
+Write-Output VM, Template | Foreach-Object {
+    ## if there are any cmdlets from any loaded modules with the given parametername, register an arg completer
+    if ($arrCommandsOfInterest = Get-Command -Module ($arrModulesOfVMwarePowerCLIModule | Where-Object {$_.Name -ne "VMware.VimAutomation.Cloud"}) -ParameterName $_ -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsOfInterest -ParameterName $_ -ScriptBlock $sbGetVmOrTemplateNameCompleter}
+} ## end ForEach-Object
 
 
 ## multiple "core" item name completer, like cluster, datacenter, hostsystem, datastore
@@ -54,15 +58,13 @@ Register-ArgumentCompleter -CommandName Get-Cluster, Get-Datacenter, Get-Datasto
 
 
 
-## multiple inventory item name completer, like hostsystem, datastore; at last check, this snippet adds completers for 288 params across 238 cmdlets -- noice!
-## could do datacenter, datastorecluster, cluster, vm, template, folder (InventoryLocation),
+## multiple inventory item name completer, like hostsystem, datastore
 $sbGetVIItemNameCompleter = {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
     ## the View object type name that corresponds to the given parameter name, to be used in a Get-View call, later; defaults to the parameter name used (so as to not have to have a switch case for when a param name is the same as the View object type name; like, for example, "datastore" -- the View object type is "datastore")
     $strViewTypePerParamName = Switch ($parameterName) {
         {"VMHost", "AddVMHost", "RemoveVMHost" -contains $_} {"HostSystem"}
         "VApp" {"VirtualApp"}
-        "VM" {"VirtualMachine"}
         "Cluster" {"ClusterComputeResource"}
         "DatastoreCluster" {"StoragePod"}
         default {$parameterName}  ## gets things like Datacenter, ResourcePool
@@ -82,10 +84,11 @@ $sbGetVIItemNameCompleter = {
     } ## end foreach-object
 } ## end scriptblock
 
-Write-Output AddVMHost, Cluster, Datacenter, Datastore, DatastoreCluster, RemoveVMHost, ResourcePool, VApp, VM, VMHost | Foreach-Object {
+Write-Output AddVMHost, Cluster, Datacenter, Datastore, DatastoreCluster, RemoveVMHost, ResourcePool, VMHost | Foreach-Object {
     ## if there are any cmdlets from any loaded modules with the given parametername, register an arg completer
     if ($arrCommandsOfInterest = Get-Command -Module $arrModulesOfVMwarePowerCLIModule -ParameterName $_ -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsOfInterest -ParameterName $_ -ScriptBlock $sbGetVIItemNameCompleter}
 } ## end ForEach-Object
+if ($arrCommandsOfInterest = Get-Command -Module ($arrModulesOfVMwarePowerCLIModule | Where-Object {$_.Name -ne "VMware.VimAutomation.Cloud"}) -ParameterName VApp -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsOfInterest -ParameterName VApp -ScriptBlock $sbGetVIItemNameCompleter}
 
 
 
