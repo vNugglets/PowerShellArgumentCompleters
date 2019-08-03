@@ -104,6 +104,7 @@ $sbGeneralVIItemNameCompleter = {
         Name {$commandName} ## if it's -Name param, use the $commandName that is for this invocation
         OSCustomizationSpec {"Get-OSCustomizationSpec"}
         Role {"Get-VIRole"}
+        StoragePolicy {"Get-SpbmStoragePolicy"}
     } ## end hsh
     & $strCommandNameToGetCompleters @hshParamForGetVIItem | Sort-Object -Property Name | Foreach-Object {
         ## make the Completion and ListItem text values; happen to be the same for now, but could be <anything of interest/value>
@@ -117,12 +118,12 @@ $sbGeneralVIItemNameCompleter = {
     } ## end foreach-object
 } ## end scriptblock
 
-Write-Output Baseline, HostProfile, Profile, Role, OSCustomizationSpec | ForEach-Object {
+Write-Output Baseline, HostProfile, OSCustomizationSpec, Profile, Role, StoragePolicy | ForEach-Object {
     ## if there are any cmdlets from any loaded modules with the given parametername, register an arg completer
     if ($arrCommandsOfInterest = Get-Command -Module $arrModulesOfVMwarePowerCLIModule -ParameterName $_ -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsOfInterest -ParameterName $_ -ScriptBlock $sbGeneralVIItemNameCompleter}
 } ## end ForEach-Object
-Register-ArgumentCompleter -CommandName Get-PatchBaseline, Get-OSCustomizationSpec, Get-VIRole, Get-VMHostProfile -ParameterName Name -ScriptBlock $sbGeneralVIItemNameCompleter
+Register-ArgumentCompleter -CommandName Get-OSCustomizationSpec, Get-PatchBaseline, Get-SpbmStoragePolicy, Get-VIRole, Get-VMHostProfile -ParameterName Name -ScriptBlock $sbGeneralVIItemNameCompleter
 
 
-## will need more research (are specific to a particular instance of an object, for example)
-## Snapshot, PortGroup, NetworkAdapter, HardDisk, VirtualSwitch, VDPortGroup
+## will need more research (are specific to a particular instance of an object, for example, or current retrieval method is sllloowww)
+## Snapshot, PortGroup, NetworkAdapter, HardDisk, VirtualSwitch, VDPortGroup, Tag
