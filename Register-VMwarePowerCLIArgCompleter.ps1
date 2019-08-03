@@ -96,23 +96,30 @@ $sbGeneralVIItemNameCompleter = {
     if (-not [System.String]::isNullOrEmpty($wordToComplete)) {$hshParamForGetVIItem['Name'] = "${wordToComplete}*"}
     ## the PowerCLI cmdlet name to use to get the completer values for this parameter
     $strCommandNameToGetCompleters = Switch ($parameterName) {
-        HostProfile {"Get-VMHostProfile"}
+        Baseline {"Get-Baseline"}
+        {"HostProfile", "Profile" -contains $_} {"Get-VMHostProfile"}
         Name {$commandName} ## if it's -Name param, use the $commandName that is for this invocation
         OSCustomizationSpec {"Get-OSCustomizationSpec"}
         Role {"Get-VIRole"}
     } ## end hsh
     & $strCommandNameToGetCompleters @hshParamForGetVIItem | Sort-Object -Property Name | Foreach-Object {
+        ## make the Completion and ListItem text values; happen to be the same for now, but could be <anything of interest/value>
+        $strCompletionText = $strListItemText = if ($_.Name -match "\s") {'"{0}"' -f $_.Name} else {$_.Name}
         New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
-            $_.Name,    # CompletionText
-            $_.Name,    # ListItemText
+            $strCompletionText,    # CompletionText
+            $strListItemText,    # ListItemText
             [System.Management.Automation.CompletionResultType]::ParameterValue,    # ResultType
             ("{0} ({1})" -f $_.Name, $_.Description)    # ToolTip
         )
     } ## end foreach-object
 } ## end scriptblock
 
-Write-Output HostProfile, Role, OSCustomizationSpec | ForEach-Object {
+Write-Output Baseline, HostProfile, Profile, Role, OSCustomizationSpec | ForEach-Object {
     ## if there are any cmdlets from any loaded modules with the given parametername, register an arg completer
     if ($arrCommandsOfInterest = Get-Command -Module $arrModulesOfVMwarePowerCLIModule -ParameterName $_ -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsOfInterest -ParameterName $_ -ScriptBlock $sbGeneralVIItemNameCompleter}
 } ## end ForEach-Object
-Register-ArgumentCompleter -CommandName Get-OSCustomizationSpec, Get-VIRole, Get-VMHostProfile -ParameterName Name -ScriptBlock $sbGeneralVIItemNameCompleter
+Register-ArgumentCompleter -CommandName Get-PatchBaseline, Get-OSCustomizationSpec, Get-VIRole, Get-VMHostProfile -ParameterName Name -ScriptBlock $sbGeneralVIItemNameCompleter
+
+
+## will need more research (are specific to a particular instance of an object, for example)
+## Snapshot, PortGroup, NetworkAdapter, HardDisk, VirtualSwitch, VDPortGroup
