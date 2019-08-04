@@ -76,7 +76,7 @@ process {
     } ## end ForEach-Object
 
 
-    ## multiple "core" item name completer, like cluster, datacenter, hostsystem, datastore
+    ## multiple "core" item name completer, like cluster, datacenter, hostsystem, datastore, etc.
     $sbGetCoreItemNameCompleter = {
         param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
         ## non-exhaustive list of View items to easily grab for -Name param value completion on corresponding cmdlet
@@ -111,7 +111,7 @@ process {
 
 
 
-    ## multiple inventory item name completer, like hostsystem, datastore
+    ## multiple inventory item name completer for parameters other than "-Name", like -VMHost, -Datastore, etc.
     $sbGetVIItemNameCompleter = {
         param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
         ## the View object type name that corresponds to the given parameter name, to be used in a Get-View call, later; defaults to the parameter name used (so as to not have to have a switch case for when a param name is the same as the View object type name; like, for example, "datastore" -- the View object type is "datastore")
@@ -158,7 +158,7 @@ process {
             OSCustomizationSpec {"Get-OSCustomizationSpec"}
             Role {"Get-VIRole"}
             StoragePolicy {"Get-SpbmStoragePolicy"}
-        } ## end hsh
+        } ## end switch
         & $strCommandNameToGetCompleters @hshParamForGetVIItem | Sort-Object -Property Name | Foreach-Object {
             ## make the Completion and ListItem text values; happen to be the same for now, but could be <anything of interest/value>
             $strCompletionText = $strListItemText = if ($_.Name -match "\s") {'"{0}"' -f $_.Name} else {$_.Name}
@@ -176,6 +176,28 @@ process {
         if ($arrCommandsOfInterest = Get-Command -Module $arrModulesOfVMwarePowerCLIModule -ParameterName $_ -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsOfInterest -ParameterName $_ -ScriptBlock $sbGeneralVIItemNameCompleter}
     } ## end ForEach-Object
     Register-ArgumentCompleter -CommandName Get-OSCustomizationSpec, Get-PatchBaseline, Get-SpbmStoragePolicy, Get-VIRole, Get-VMHostProfile -ParameterName Name -ScriptBlock $sbGeneralVIItemNameCompleter
+
+
+
+    ## Enum completer for enumeration values, like for -GuestID (type [VMware.Vim.VirtualMachineGuestOsIdentifier])
+    $sbGuestIDEnumNameCompleter = {
+        param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
+        ## the Enumeration type to use to get the completer values for this parameter
+        $oEnumType = Switch ($parameterName) {
+            GuestID {[VMware.Vim.VirtualMachineGuestOsIdentifier]}
+        } ## end switch
+        [System.Enum]::GetValues($oEnumType) | Select-Object -Property @{n="Name"; e = {$_.ToString()}}, value__ | Where-Object {if (-not ([System.String]::isNullOrEmpty($wordToComplete))) {$_.Name -like "${wordToComplete}*"} else {$true}} | Sort-Object -Property Name | Foreach-Object {
+            ## make the Completion and ListItem text values; happen to be the same for now, but could be <anything of interest/value>
+            New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
+                $_.Name,    # CompletionText
+                $_.Name,    # ListItemText
+                [System.Management.Automation.CompletionResultType]::ParameterValue,    # ResultType
+                ("{0} ({1})" -f $_.Name, $_.value__)    # ToolTip
+            )
+        } ## end foreach-object
+    } ## end scriptblock
+
+    Register-ArgumentCompleter -CommandName New-VM, Set-VM -ParameterName GuestID -ScriptBlock $sbGuestIDEnumNameCompleter
 
 
     ## will need more research (are specific to a particular instance of an object, for example, or current retrieval method is sllloowww)
