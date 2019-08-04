@@ -4,7 +4,7 @@
 [CmdletBinding(SupportsShouldProcess=$true)]
 param(
 	## Path to scriptfile with whose scriptinfo to deal
-	[String]$Path = "Register-VMwarePowerCLIArgCompleter.ps1",
+	[String]$Path = "Register-VNVMwarePowerCLIArgCompleter.ps1",
 
 	## Recreate the manifest (overwrite with full, fresh copy instead of update?)
 	[Switch]$Recreate,
