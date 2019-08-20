@@ -4,7 +4,7 @@
 [CmdletBinding(SupportsShouldProcess=$true)]
 param(
 	## Path to scriptfile with whose scriptinfo to deal
-	[String]$Path = "Register-VNVMwarePowerCLIArgCompleter.ps1",
+	[String]$Path = "Register-VNVMwarePowerCLIArgumentCompleter.ps1",
 
 	## Recreate the manifest (overwrite with full, fresh copy instead of update?)
 	[Switch]$Recreate,
@@ -13,9 +13,7 @@ param(
 	[Switch]$Force
 )
 begin {
-	$strModuleName = "vNugglets.VDNetworking"
-	$strModuleFolderFilespec = "$PSScriptRoot\$strModuleName"
-	$strFilespecForPsd1 = Join-Path $strModuleFolderFilespec "${strModuleName}.psd1"
+	# $strModuleName = "someModule"
 
 	## parameters for use by both New-ScriptFileInfo and Update-ScriptFileInfo
 	$hshScriptInfoParams = @{
@@ -25,7 +23,7 @@ begin {
 		Author = "Matt Boren (@mtboren)"
 		CompanyName = 'vNugglets'
 		Copyright = "MIT License"
-		Description = "Script to register PowerShell argument completers for many parameters for many VMware.PowerCLI cmdlets, making us even more productive on the command line"
+		Description = "Script to register PowerShell argument completers for many parameters for many VMware.PowerCLI cmdlets, making us even more productive on the command line. This enables the tab-completion of actual vSphere inventory objects' names as values to parameters to VMware.PowerCLI cmdlets -- neat!"
 		IconUri = "https://avatars0.githubusercontent.com/u/22530966"
 		LicenseUri = "https://github.com/vNugglets/PowerShellArgumentCompleters/blob/master/License"
 		ProjectUri = "https://github.com/vNugglets/PowerShellArgumentCompleters"

@@ -31,16 +31,13 @@ See ReadMe and other docs at https://github.com/vNugglets/PowerShellArgumentComp
 
 #>
 
-
-
-
 <#
 
 .DESCRIPTION
-Script to register PowerShell argument completers for many parameters for many VMware.PowerCLI cmdlets, making us even more productive on the command line.  This enables the tab-completion of actual vSphere inventory objects' names as values to parameters to VMware.PowerCLI cmdlets -- neat!
+Script to register PowerShell argument completers for many parameters for many VMware.PowerCLI cmdlets, making us even more productive on the command line. This enables the tab-completion of actual vSphere inventory objects' names as values to parameters to VMware.PowerCLI cmdlets -- neat!
 
 .Example
-Register-VNVMwarePowerCLIArgCompleter.ps1
+Register-VNVMwarePowerCLIArgumentCompleter.ps1
 Register argument completers for all of the VMware.PowerCLI cmdlets that are currently available in this PowerShell session, and for which there is an argument completer defined in this script
 
 .Link
