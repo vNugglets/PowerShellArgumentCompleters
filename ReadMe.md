@@ -2,12 +2,27 @@
 
 A collection of some PowerShell argument completers for various cmdlets, starting with those in the VMware PowerShell module `VMware.PowerCLI`.
 
+Contents:
+
+- [What is Argument Completing?](#whatIsArgCompleting)
+- [Getting Started](#gettingStarted)
+- [Deeper Info](#deeperInfo)
+
+
+<a id="whatIsArgCompleting"></a>
+## What is Argument Completing?
+Background: PowerShell argument completers are a way to enable tab-completion of cmdlet parameter values. These can be from static sources, live sources -- whatever you can imagine.  Here are some examples of argument completing for a few VMware PowerCLI cmdlets' parameters:
+
+![Examples of Argument Completers for cmdlets from VMware.PowerCLI](docs/resources/ArgCompleterDemo_Keystrokes.gif)
+
+<a id="gettingStarted"></a>
 ## Getting Started
 The [docs](./docs) for this project have the information about getting started with using argument completers. Check them out.
 
+<a id="deeperInfo"></a>
 ## Deeper Info
 
-Background: PowerShell argument completers are a way to enable tab-completion of cmdlet parameter values.  One can use a scriptblock of goodness in order to generate the completion results.  So, for example:
+One can use a scriptblock of goodness in order to generate the completion results.  So, for example:
 ``` PowerShell
 ## with a proper argument completer for the -Name parameter, the following cycles through VMs whose name match the given string, live, from the given virtual infrastructure
 Get-VM -Name matt<tab>
