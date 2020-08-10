@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.0.0
+.VERSION 1.0.1
 
 .GUID 3290ce71-109f-486d-8f58-49eb21d6c334
 
@@ -58,7 +58,7 @@ process {
         param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
         ## make the regex pattern to use for Name filtering for given View object (convert from globbing wildcard to regex pattern, to support globbing wildcard as input)
         $strNameRegex = if ($wordToComplete -match "\*") {$wordToComplete.Replace("*", ".*")} else {$wordToComplete}
-        Get-View -ViewType VirtualMachine -Property Name, Runtime.Powerstate -Filter @{Name = "^${strNameRegex}"; "Config.Template" = ($commandName -ne "Get-VM" -and $parameterName -ne "VM").ToString()} | Where-Object {$fakeBoundParameter.$parameterName -notcontains $_.Name} | Sort-Object -Property Name | Foreach-Object {
+        Get-View -ViewType VirtualMachine -Property Name, Runtime.Powerstate -Filter @{Name = "^${strNameRegex}"; "Config.Template" = ($commandName -ne "Get-VM" -and $parameterName -ne "VM").ToString()} | Where-Object {$fakeBoundParameter.$parameterName -notcontains $_.Name} | Sort-Object -Property Name -Unique | Foreach-Object {
             New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
                 $_.Name,    # CompletionText
                 $_.Name,    # ListItemText
