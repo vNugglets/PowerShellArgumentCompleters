@@ -1,4 +1,5 @@
 ## Argument Completers for some PowerShell module cmdlets
+[![PSGallery Version](https://img.shields.io/powershellgallery/v/Register-VNVMwarePowerCLIArgumentCompleter.svg?style=flat&logo=powershell&label=PSGallery%20Version)](https://www.powershellgallery.com/packages/Register-VNVMwarePowerCLIArgumentCompleter) [![PSGallery Downloads](https://img.shields.io/powershellgallery/dt/Register-VNVMwarePowerCLIArgumentCompleter.svg?style=flat&logo=powershell&label=PSGallery%20Downloads)](https://www.powershellgallery.com/packages/Register-VNVMwarePowerCLIArgumentCompleter)
 
 A collection of some PowerShell argument completers for various cmdlets, starting with those in the VMware PowerShell module `VMware.PowerCLI`.
 
