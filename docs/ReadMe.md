@@ -4,6 +4,8 @@ Some info about using argument completers.  For other info, the [ReadMe.md](../R
 Contents:
 
 - [Getting Started](#gettingStarted)
+- [AWS Argument Completer quick info](#AWS-Argument-Completer-quick-info)
+- [VMware-PowerCLI Argument Completer quick info](#VMware-PowerCLI-Argument-Completer-quick-info)
 - [Info about Argument Completers in a PowerShell Session](#infoAboutArgCompleterInPSSession)
 - [Other Examples](#otherExamples)
 
@@ -12,22 +14,51 @@ Contents:
 ### Getting Started
 To register the argument completers provided by this project, you need just a couple of things:
 - the script file in which the argument completer definitions and registration statements reside (save or install it from the PowerShell Gallery)
-- a PowerShell session with the `VMware.PowerCLI` module available to it (in the `$env:PSModulePath` path, at least -- doesn't necessarily have to be imported, yet)
+- a PowerShell session with the given module(s) (`VMware.PowerCLI`, `AWS.Tools.*`) available to it (in the `$env:PSModulePath` path, at least -- for the VMware completers, the modules don't necessarily have to be imported, yet, but for the AWS completers, only cmdlets for imported modules will be considered for arugment completers, for the sake of speed (since there are 5,000+ cmdlets in all of the AWS cmdlets))
 
-So, like:
+The Argument completer scripts available as a part of this project:
+- `Register-VNAWSArgumentCompleter`
+- `Register-VNVMwarePowerCLIArgumentCompleter`
+
+So, for getting/invoking any of these argument-completer scripts from the PowerShell Gallery (use the correspondign script name from above), it goes like:
 ``` PowerShell
-## find the script, and save it somewhere; alternatively, you could use Install-Script to just install it somewhere in your scripts path straight-away
+## Install and invoke (if you already trust the contents)
+## Install a completer script
+Find-Script Register-VNVMwarePowerCLIArgumentCompleter | Install-Script
+
+## run the script to register argument completers
+Register-VNVMwarePowerCLIArgumentCompleter.ps1
+
+
+## or, Save, inspect, install, invoke
+## find the script, and save it somewhere
 Find-Script Register-VNVMwarePowerCLIArgumentCompleter | Save-Script -Path c:\temp\ScriptsToInspect\
 
-## take a minute to open up the script and make sure that all is well.  While vNuggs is trustworthy, trust no one, right? Safety first!
+## take a minute to open up the script and make sure that all is well.
+#    While vNuggs is trustworthy, trust no one, right? Safety first!
 
-## then, just run the saved script -- this registers the argument completers in the current PowerShell session; of course, if you Installed the script, you should just be able to call the script by name, without an explicit path
+## then, just run the saved script -- this registers the argument completers in the current PowerShell session
+#    of course, if you Installed the script, you should just be able to call the script by name, without an explicit path
 c:\temp\ScriptsToInspect\Register-VNVMwarePowerCLIArgumentCompleter.ps1
 ```
 
 And, ¡voila! Now when you use the `VMware.PowerCLI` cmdlets (after connecting to a vCenter server or ESXi host), you can use \<Tab> to tab-complete names of inventory objects for parameters.
 
-A quick list of the `VMware.PowerCLI` cmdlet parameters whose values can be tab-completed after registering argument completers with this script:
+### AWS Argument Completer quick info
+A quick list of the `AWS.Tools.*` cmdlet parameters whose values can be tab-completed after registering argument completers with the given script:
+
+- `-AutoScalingGroupName`
+- `-BucketName`
+- `-FunctionName`
+- `-LaunchConfigurationName`
+- `-LogGroupName`
+- `-LogGroupNamePrefix`
+- `-RoleName`
+- `-StackName`
+- ..and a few more (`Name` on some cmdlets, for example)
+
+### VMware PowerCLI Argument Completer quick info
+A quick list of the `VMware.PowerCLI` cmdlet parameters whose values can be tab-completed after registering argument completers with the given script:
 
 - `-Cluster`
 - `-Datacenter`
@@ -56,6 +87,8 @@ We see that there were none registered for starters, and eventually there were o
 ``` PowerShell
 PS C:\> ## have already imported VMware.PowerCLI module, say, via $Profile
 PS C:\> ## let's see what argument completers are already registered (none, yet)
+PS C:\> ## note: Get-ArgumentCompleter.ps1 is available from Chris Dent's Gist at
+## https://gist.github.com/indented-automation/26c637fb530c4b168e62c72582534f5b
 PS C:\> Get-ArgumentCompleter.ps1
 PS C:\>
 PS C:\> ## register some PowerCLI argument completers
