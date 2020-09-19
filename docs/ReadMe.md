@@ -20,10 +20,10 @@ The Argument completer scripts available as a part of this project:
 - `Register-VNAWSArgumentCompleter`
 - `Register-VNVMwarePowerCLIArgumentCompleter`
 
-So, for getting/invoking any of these argument-completer scripts from the PowerShell Gallery (use the correspondign script name from above), it goes like:
+So, for getting/invoking any of these argument-completer scripts from the PowerShell Gallery (use the corresponding script name from above), it goes like:
 ``` PowerShell
 ## Install and invoke (if you already trust the contents)
-## Install a completer script
+## Install a completer script (again, specify the desired name of completer script)
 Find-Script Register-VNVMwarePowerCLIArgumentCompleter | Install-Script
 
 ## run the script to register argument completers
