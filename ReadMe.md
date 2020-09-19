@@ -1,7 +1,13 @@
 ## Argument Completers for some PowerShell module cmdlets
-[![PSGallery Version](https://img.shields.io/powershellgallery/v/Register-VNVMwarePowerCLIArgumentCompleter.svg?style=flat&logo=powershell&label=PSGallery%20Version)](https://www.powershellgallery.com/packages/Register-VNVMwarePowerCLIArgumentCompleter) [![PSGallery Downloads](https://img.shields.io/powershellgallery/dt/Register-VNVMwarePowerCLIArgumentCompleter.svg?style=flat&logo=powershell&label=PSGallery%20Downloads)](https://www.powershellgallery.com/packages/Register-VNVMwarePowerCLIArgumentCompleter)
 
-A collection of some PowerShell argument completers for various cmdlets, starting with those in the VMware PowerShell module `VMware.PowerCLI`.
+A collection of some PowerShell argument completers for various cmdlets from some PowerShell modules:
+
+| Argument Completer Script | Description | PSGallery Info |
+|---------------------------|-------------|----------------|
+| Register-VNAWSArgumentCompleter.ps1 | Completers for some of the AWS PowerShell modules `AWS.Tools.*`, and the monolithic `AWSPowerShell*` | [![Latest Version](https://img.shields.io/powershellgallery/v/Register-VNAWSArgumentCompleter.svg?style=flat&logo=powershell&label=Latest%20Version)](https://www.powershellgallery.com/packages/Register-VNAWSArgumentCompleter) [![Downloads](https://img.shields.io/powershellgallery/dt/Register-VNAWSArgumentCompleter.svg?style=flat&logo=powershell&label=Downloads)](https://www.powershellgallery.com/packages/Register-VNAWSArgumentCompleter) |
+| Register-VNVMwarePowerCLIArgumentCompleter.ps1 | Completers for VMware PowerShell module `VMware.PowerCLI` | [![Latest Version](https://img.shields.io/powershellgallery/v/Register-VNVMwarePowerCLIArgumentCompleter.svg?style=flat&logo=powershell&label=Latest%20Version)](https://www.powershellgallery.com/packages/Register-VNVMwarePowerCLIArgumentCompleter) [![Downloads](https://img.shields.io/powershellgallery/dt/Register-VNVMwarePowerCLIArgumentCompleter.svg?style=flat&logo=powershell&label=Downloads)](https://www.powershellgallery.com/packages/Register-VNVMwarePowerCLIArgumentCompleter) |
+
+
 
 Contents:
 
