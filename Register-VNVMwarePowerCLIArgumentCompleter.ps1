@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.0.1
+.VERSION 1.1.0
 
 .GUID 3290ce71-109f-486d-8f58-49eb21d6c334
 
@@ -18,7 +18,7 @@
 
 .ICONURI https://avatars0.githubusercontent.com/u/22530966
 
-.EXTERNALMODULEDEPENDENCIES
+.EXTERNALMODULEDEPENDENCIES 
 
 .REQUIREDSCRIPTS
 
@@ -29,11 +29,13 @@ See ReadMe and other docs at https://github.com/vNugglets/PowerShellArgumentComp
 
 .PRIVATEDATA
 
-#>
+#> 
+
+
 
 <#
 
-.DESCRIPTION
+.DESCRIPTION 
 Script to register PowerShell argument completers for many parameters for many VMware.PowerCLI cmdlets, making us even more productive on the command line. This enables the tab-completion of actual vSphere inventory objects' names as values to parameters to VMware.PowerCLI cmdlets -- neat!
 
 .Example
@@ -214,9 +216,7 @@ process {
         } ## end foreach-object
     } ## end scriptblock
 
-    Register-ArgumentCompleter -CommandName (Get-Command -Module (Write-Output VMware.VimAutomation.Core, VMware.VimAutomation.License, VMware.VimAutomation.Security, VMware.VimAutomation.Srm, VMware.VimAutomation.Storage, VMware.VimAutomation.StorageUtility, VMware.VimAutomation.Vds, VMware.VumAutomation) -ParameterName Server) -ParameterName Server -ScriptBlock $sbVIServerNameCompleter
-
-
+    if ($arrCommandsOfInterest = Get-Command -Module VMware.* -ParameterName Server -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsOfInterest -ParameterName Server -ScriptBlock $sbVIServerNameCompleter}
 
     ## will need more research (are specific to a particular instance of an object, for example, or current retrieval method is sllloowww)
     ## Snapshot, PortGroup, NetworkAdapter, HardDisk, VirtualSwitch, VDPortGroup, Tag
