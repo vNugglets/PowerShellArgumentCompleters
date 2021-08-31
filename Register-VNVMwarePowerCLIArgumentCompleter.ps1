@@ -18,7 +18,7 @@
 
 .ICONURI https://avatars0.githubusercontent.com/u/22530966
 
-.EXTERNALMODULEDEPENDENCIES 
+.EXTERNALMODULEDEPENDENCIES
 
 .REQUIREDSCRIPTS
 
@@ -29,7 +29,7 @@ See ReadMe and other docs at https://github.com/vNugglets/PowerShellArgumentComp
 
 .PRIVATEDATA
 
-#> 
+#>
 
 
 
@@ -37,7 +37,7 @@ See ReadMe and other docs at https://github.com/vNugglets/PowerShellArgumentComp
 
 <#
 
-.DESCRIPTION 
+.DESCRIPTION
 Script to register PowerShell argument completers for many parameters for many VMware.PowerCLI cmdlets, making us even more productive on the command line. This enables the tab-completion of actual vSphere inventory objects' names as values to parameters to VMware.PowerCLI cmdlets -- neat!
 
 .Example
@@ -62,13 +62,16 @@ process {
         param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
         ## make the regex pattern to use for Name filtering for given View object (convert from globbing wildcard to regex pattern, to support globbing wildcard as input)
         $strNameRegex = if ($wordToComplete -match "\*") {$wordToComplete.Replace("*", ".*")} else {$wordToComplete}
-        Get-View -ViewType VirtualMachine -Property Name, Runtime.Powerstate -Filter @{Name = "^${strNameRegex}"; "Config.Template" = ($commandName -ne "Get-VM" -and $parameterName -ne "VM").ToString()} | Where-Object {$fakeBoundParameter.$parameterName -notcontains $_.Name} | Sort-Object -Property Name -Unique | Foreach-Object {
+        ## is this command getting Template objects? (vs. VM objects)
+        $bGettingTemplate = $commandName -ne "Get-VM" -and $parameterName -ne "VM"
+        Get-View -ViewType VirtualMachine -Property Name, Runtime.Powerstate -Filter @{Name = "^${strNameRegex}"; "Config.Template" = $bGettingTemplate.ToString()} | Where-Object {$fakeBoundParameter.$parameterName -notcontains $_.Name} | Sort-Object -Property Name -Unique | Foreach-Object {
             $strCompletionText = $strListItemText = if ($_.Name -match "\s") {'"{0}"' -f $_.Name} else {$_.Name}
             New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
                 $strCompletionText,    # CompletionText
                 $strListItemText,    # ListItemText
                 [System.Management.Automation.CompletionResultType]::ParameterValue,    # ResultType
-                ("{0} ({1})" -f $_.Name, $_.Runtime.PowerState)    # ToolTip
+                ## for tooltip, give Name and either PowerState (for VM) or GuestFullName (for Template)
+                ("{0} ({1})" -f $_.Name, $(if (-not $bGettingTemplate) {$_.Runtime.PowerState} else {$_.UpdateViewData("Config.GuestFullName"); $_.Config.GuestFullName}))    # ToolTip
             )
         } ## end foreach-object
     } ## end scriptblock
