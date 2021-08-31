@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.1.0
+.VERSION 1.1.1
 
 .GUID 3290ce71-109f-486d-8f58-49eb21d6c334
 
@@ -18,7 +18,7 @@
 
 .ICONURI https://avatars0.githubusercontent.com/u/22530966
 
-.EXTERNALMODULEDEPENDENCIES
+.EXTERNALMODULEDEPENDENCIES 
 
 .REQUIREDSCRIPTS
 
@@ -29,13 +29,15 @@ See ReadMe and other docs at https://github.com/vNugglets/PowerShellArgumentComp
 
 .PRIVATEDATA
 
-#>
+#> 
+
+
 
 
 
 <#
 
-.DESCRIPTION
+.DESCRIPTION 
 Script to register PowerShell argument completers for many parameters for many VMware.PowerCLI cmdlets, making us even more productive on the command line. This enables the tab-completion of actual vSphere inventory objects' names as values to parameters to VMware.PowerCLI cmdlets -- neat!
 
 .Example
