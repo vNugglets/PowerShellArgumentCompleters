@@ -135,11 +135,15 @@ process {
         Get-View -ViewType $strViewTypePerParamName -Property Name -Filter @{Name = "^${strNameRegex}"} | Sort-Object -Property Name -Unique | Foreach-Object {
             ## make the Completion and ListItem text values; happen to be the same for now, but could be <anything of interest/value>
             $strCompletionText = $strListItemText = if ($_.Name -match "\s") {'"{0}"' -f $_.Name} else {$_.Name}
+            ## the Tool Tip extra info
+            $strToolTipExtraInfo = if ($strViewTypePerParamName -in "Datastore", "StoragePod") {
+                $_.UpdateViewData("Summary.Capacity", "Summary.FreeSpace"); "{0}GB, {1}GB free" -f [Math]::Round($_.Summary.Capacity / 1GB, 1).ToString("N1"), [Math]::Round($_.Summary.FreeSpace / 1GB, 1).ToString("N1")
+            } else {"'$($_.MoRef)'"}
             New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
                 $strCompletionText,    # CompletionText
                 $strListItemText,    # ListItemText
                 [System.Management.Automation.CompletionResultType]::ParameterValue,    # ResultType
-                ("{0} ('{1}')" -f $_.Name, $_.MoRef)    # ToolTip
+                ("{0} ({1})" -f $_.Name, $strToolTipExtraInfo)    # ToolTip
             )
         } ## end foreach-object
     } ## end scriptblock
