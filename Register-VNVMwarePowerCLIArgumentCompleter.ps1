@@ -173,7 +173,8 @@ process {
                 $strCompletionText,    # CompletionText
                 $strListItemText,    # ListItemText
                 [System.Management.Automation.CompletionResultType]::ParameterValue,    # ResultType
-                ("{0} ({1})" -f $_.Name, $_.Description)    # ToolTip
+                ## if getting OSCustSpec, include the OSCS OSType info, too; else, just the description
+                ("{0} ({1}{2})" -f $_.Name, $(if ($strCommandNameToGetCompleters -eq "Get-OSCustomizationSpec") {"[$($_.OSType)] "}), $(if (-not [System.String]::isNullOrEmpty($_.Description)) {$_.Description} else {"<no description>"}))    # ToolTip
             )
         } ## end foreach-object
     } ## end scriptblock
