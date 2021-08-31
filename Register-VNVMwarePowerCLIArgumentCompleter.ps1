@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.1.0
+.VERSION 1.1.1
 
 .GUID 3290ce71-109f-486d-8f58-49eb21d6c334
 
@@ -33,6 +33,8 @@ See ReadMe and other docs at https://github.com/vNugglets/PowerShellArgumentComp
 
 
 
+
+
 <#
 
 .DESCRIPTION 
@@ -61,9 +63,10 @@ process {
         ## make the regex pattern to use for Name filtering for given View object (convert from globbing wildcard to regex pattern, to support globbing wildcard as input)
         $strNameRegex = if ($wordToComplete -match "\*") {$wordToComplete.Replace("*", ".*")} else {$wordToComplete}
         Get-View -ViewType VirtualMachine -Property Name, Runtime.Powerstate -Filter @{Name = "^${strNameRegex}"; "Config.Template" = ($commandName -ne "Get-VM" -and $parameterName -ne "VM").ToString()} | Where-Object {$fakeBoundParameter.$parameterName -notcontains $_.Name} | Sort-Object -Property Name -Unique | Foreach-Object {
+            $strCompletionText = $strListItemText = if ($_.Name -match "\s") {'"{0}"' -f $_.Name} else {$_.Name}
             New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
-                $_.Name,    # CompletionText
-                $_.Name,    # ListItemText
+                $strCompletionText,    # CompletionText
+                $strListItemText,    # ListItemText
                 [System.Management.Automation.CompletionResultType]::ParameterValue,    # ResultType
                 ("{0} ({1})" -f $_.Name, $_.Runtime.PowerState)    # ToolTip
             )
