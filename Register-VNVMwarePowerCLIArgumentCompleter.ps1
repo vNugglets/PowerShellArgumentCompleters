@@ -103,17 +103,28 @@ process {
         $strNameRegex = if ($wordToComplete -match "\*") {$wordToComplete.Replace("*", ".*")} else {$wordToComplete}
         ## get the possible matches, create a new CompletionResult object for each
         Get-View -ViewType $hshCmdletToViewType[$commandName] -Property Name -Filter @{Name = "^${strNameRegex}"} | Sort-Object -Property Name -Unique | Foreach-Object {
+            $viewThisItem = $_
     		## make the Completion and ListItem text values; happen to be the same for now, but could be <anything of interest/value>
         	$strCompletionText = $strListItemText = if ($_.Name -match "\s") {'"{0}"' -f $_.Name} else {$_.Name}
             ## the Tool Tip extra info
-            $strToolTipExtraInfo = if ($commandName -in "Get-Datastore", "Get-DatastoreCluster") {
-                $_.UpdateViewData("Summary.Capacity", "Summary.FreeSpace"); "{0}GB, {1}GB free" -f [Math]::Round($_.Summary.Capacity / 1GB, 1).ToString("N1"), [Math]::Round($_.Summary.FreeSpace / 1GB, 1).ToString("N1")
-            } else {"'$($_.MoRef)'"}
+            $strToolTipExtraInfo = Switch ($commandName) {
+                ## Datastores/DatastoreClusters
+                {$_ -in "Get-Datastore", "Get-DatastoreCluster"} {
+                    $viewThisItem.UpdateViewData("Summary.Capacity", "Summary.FreeSpace")
+                    "{0}GB, {1}GB free" -f [Math]::Round($viewThisItem.Summary.Capacity / 1GB, 1).ToString("N1"), [Math]::Round($viewThisItem.Summary.FreeSpace / 1GB, 1).ToString("N1")
+                }
+                ## VMHosts
+                "Get-VMHost" {
+                    $viewThisItem.UpdateViewData("Runtime.ConnectionState", "Runtime.PowerState", "Runtime.InMaintenanceMode")
+                    "{0}, {1}" -f $viewThisItem.Runtime.PowerState, $(if ($viewThisItem.Runtime.InMaintenanceMode) {"maintenance"} else {$viewThisItem.Runtime.ConnectionState})
+                }
+                default {"'$($viewThisItem.MoRef)'"}
+            } ## end switch
             New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
                 $strCompletionText,    # CompletionText
                 $strListItemText,    # ListItemText
                 [System.Management.Automation.CompletionResultType]::ParameterValue,    # ResultType
-                ("{0} ({1})" -f $_.Name, $strToolTipExtraInfo)    # ToolTip
+                ("{0} ({1})" -f $viewThisItem.Name, $strToolTipExtraInfo)    # ToolTip
             )
         } ## end foreach-object
     } ## end scriptblock
@@ -137,17 +148,28 @@ process {
         $strNameRegex = if ($wordToComplete -match "\*") {$wordToComplete.Replace("*", ".*")} else {$wordToComplete}
         ## get the possible matches, create a new CompletionResult object for each
         Get-View -ViewType $strViewTypePerParamName -Property Name -Filter @{Name = "^${strNameRegex}"} | Sort-Object -Property Name -Unique | Foreach-Object {
+            $viewThisItem = $_
             ## make the Completion and ListItem text values; happen to be the same for now, but could be <anything of interest/value>
             $strCompletionText = $strListItemText = if ($_.Name -match "\s") {'"{0}"' -f $_.Name} else {$_.Name}
             ## the Tool Tip extra info
-            $strToolTipExtraInfo = if ($strViewTypePerParamName -in "Datastore", "StoragePod") {
-                $_.UpdateViewData("Summary.Capacity", "Summary.FreeSpace"); "{0}GB, {1}GB free" -f [Math]::Round($_.Summary.Capacity / 1GB, 1).ToString("N1"), [Math]::Round($_.Summary.FreeSpace / 1GB, 1).ToString("N1")
-            } else {"'$($_.MoRef)'"}
+            $strToolTipExtraInfo = Switch ($strViewTypePerParamName) {
+                ## Datastores/DatastoreClusters
+                {$_ -in "Datastore", "StoragePod"} {
+                    $viewThisItem.UpdateViewData("Summary.Capacity", "Summary.FreeSpace")
+                    "{0}GB, {1}GB free" -f [Math]::Round($viewThisItem.Summary.Capacity / 1GB, 1).ToString("N1"), [Math]::Round($viewThisItem.Summary.FreeSpace / 1GB, 1).ToString("N1")
+                }
+                ## VMHosts
+                "HostSystem" {
+                    $viewThisItem.UpdateViewData("Runtime.ConnectionState", "Runtime.PowerState", "Runtime.InMaintenanceMode")
+                    "{0}, {1}" -f $viewThisItem.Runtime.PowerState, $(if ($viewThisItem.Runtime.InMaintenanceMode) {"maintenance"} else {$viewThisItem.Runtime.ConnectionState})
+                }
+                default {"'$($viewThisItem.MoRef)'"}
+            } ## end switch
             New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
                 $strCompletionText,    # CompletionText
                 $strListItemText,    # ListItemText
                 [System.Management.Automation.CompletionResultType]::ParameterValue,    # ResultType
-                ("{0} ({1})" -f $_.Name, $strToolTipExtraInfo)    # ToolTip
+                ("{0} ({1})" -f $viewThisItem.Name, $strToolTipExtraInfo)    # ToolTip
             )
         } ## end foreach-object
     } ## end scriptblock
