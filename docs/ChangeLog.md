@@ -1,5 +1,9 @@
 # Change Log for Argument Completer Scripts
 
+### Register-VNAWSArgumentCompleter, v1.2.0
+- added completer for arguments for parameter `-Service` for cmdlets `Get-AWSCmdletName`, `Get-AWSService` (feature request in [Issue #9](https://github.com/vNugglets/PowerShellArgumentCompleters/issues/9))
+
+
 ### Register-VNVMwarePowerCLIArgumentCompleter, v1.2.0
 Updated Intellisense ToolTip value for various types to be more useful (feature request in [Issue #3](https://github.com/vNugglets/PowerShellArgumentCompleters/issues/3)): Added more useful ToolTip values to the values in the list of possible tab completions. The list of possible completions is available when pressing `Ctrl+Space` with the cursor at the argument position, like:
 ```PowerShell

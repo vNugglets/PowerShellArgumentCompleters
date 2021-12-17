@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.1.0
+.VERSION 1.2.0
 
 .GUID bc73fa4a-6436-4524-b722-e7b3a98fdfac
 
@@ -18,7 +18,7 @@
 
 .ICONURI https://avatars0.githubusercontent.com/u/22530966
 
-.EXTERNALMODULEDEPENDENCIES
+.EXTERNALMODULEDEPENDENCIES 
 
 .REQUIREDSCRIPTS
 
@@ -29,12 +29,14 @@ See ReadMe and other docs at https://github.com/vNugglets/PowerShellArgumentComp
 
 .PRIVATEDATA
 
-#>
+#> 
+
+
 
 <#
 
-.DESCRIPTION
- Script to register PowerShell argument completers for many parameters for many AWS.Tools.* (and AWSPowerShell*) cmdlets, making us even more productive on the command line. This enables the tab-completion of actual AWS inventory objects' names as values to parameters to AWS cmdlets -- neat!
+.DESCRIPTION 
+Script to register PowerShell argument completers for many parameters for many AWS.Tools.* (and AWSPowerShell*) cmdlets, making us even more productive on the command line. This enables the tab-completion of actual AWS inventory objects' names as values to parameters to AWS cmdlets -- neat!
 
 .Example
 Register-VNAWSArgumentCompleter.ps1
@@ -98,5 +100,31 @@ process {
     ## specific cmdlets with -Name parameter
     Write-Output Get-ELB2LoadBalancer, Get-ELB2TargetGroup, Get-SSMDocument, Get-SSMParameter, Get-SSMParameterHistory | Foreach-Object {
         if (Get-Command -Name $_ -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $_ -ParameterName Name -ScriptBlock $sbObjectNameCompleter}
+    } ## end Foreach-Object
+
+
+    ##
+    $sbServiceCompleter = {
+        param($commandName, $parameterName, $wordToComplete, $commandAst, $commandBoundParameter)
+
+        Get-AWSService | Foreach-Object {
+            ## if no wordToComplete provided, or this item is like wordToComplete, use it
+            if (
+                [System.String]::IsNullOrEmpty($wordToComplete) -or
+                $_.Service -like "${wordToComplete}*"
+            ) {$_}
+        } | Sort-Object -Property Service | Foreach-Object {
+            New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
+                $_.Service,    # CompletionText
+                $_.Service,    # ListItemText
+                [System.Management.Automation.CompletionResultType]::ParameterValue,    # ResultType
+                ("{0} ({1}{2})" -f $_.Service, $_.ServiceName, $(if ($_ | Get-Member -Name ModuleName) {", module '$($_.ModuleName)'"}))    # ToolTip
+            )
+        } ## end Foreach-Object
+    } ## end scriptblock
+
+    ## specific cmdlets with -Service parameter
+    Write-Output Get-AWSCmdletName, Get-AWSService | Foreach-Object {
+        if (Get-Command -Name $_ -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $_ -ParameterName Service -ScriptBlock $sbServiceCompleter}
     } ## end Foreach-Object
 }
