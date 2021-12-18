@@ -2,6 +2,8 @@
 
 ### Register-VNAWSArgumentCompleter, v1.2.0
 - added completer for arguments for parameter `-Service` for cmdlets `Get-AWSCmdletName`, `Get-AWSService` (feature request in [Issue #9](https://github.com/vNugglets/PowerShellArgumentCompleters/issues/9))
+- added completer for arguments for parameter `-ApiOperation` for cmdlet `Get-AWSCmdletName` (feature request in [Issue #9](https://github.com/vNugglets/PowerShellArgumentCompleters/issues/9))
+- added Tool Tip info for SSM Document and SSM Parameter completions (creation and last modified date, respectively)
 
 
 ### Register-VNVMwarePowerCLIArgumentCompleter, v1.2.0
