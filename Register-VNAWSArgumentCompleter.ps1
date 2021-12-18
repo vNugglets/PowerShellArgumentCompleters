@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.1.0
+.VERSION 1.2.0
 
 .GUID bc73fa4a-6436-4524-b722-e7b3a98fdfac
 
@@ -31,10 +31,12 @@ See ReadMe and other docs at https://github.com/vNugglets/PowerShellArgumentComp
 
 #>
 
+
+
 <#
 
 .DESCRIPTION
- Script to register PowerShell argument completers for many parameters for many AWS.Tools.* (and AWSPowerShell*) cmdlets, making us even more productive on the command line. This enables the tab-completion of actual AWS inventory objects' names as values to parameters to AWS cmdlets -- neat!
+Script to register PowerShell argument completers for many parameters for many AWS.Tools.* (and AWSPowerShell*) cmdlets, making us even more productive on the command line. This enables the tab-completion of actual AWS inventory objects' names as values to parameters to AWS cmdlets -- neat!
 
 .Example
 Register-VNAWSArgumentCompleter.ps1
@@ -60,6 +62,8 @@ process {
         ## the property of returned objects that is of interest
         $strPropertyNameOfInterest = $parameterName  ## the property name that corrsponds to the
         $strPropertyNameOfInterest_CreationDate = "CreationDate"  ## the property name that corresponds to when the object was created (not consistent across all objects)
+        ## string to include in tooltip for creation / last modified text
+        $strAddlInfoDescriptor = "created"
         $strCmdletForGet = Switch ($parameterName) {
         	"AutoScalingGroupName" {"Get-ASAutoScalingGroup"; $strPropertyNameOfInterest_CreationDate = "CreatedTime"}
         	"BucketName" {"Get-S3Bucket"}
@@ -72,8 +76,8 @@ process {
                 Switch ($commandName) {
                     "Get-ELB2LoadBalancer" {$commandName; $strPropertyNameOfInterest = "LoadBalancerName"}
                     "Get-ELB2TargetGroup" {$commandName; $strPropertyNameOfInterest = "TargetGroupName"}
-                    "Get-SSMDocument" {"Get-SSMDocumentList"} <# no CreationDate property on SSMDocs -- such property is on the DocVersionList objects, so not getting that info here #>
-                    {"Get-SSMParameter", "Get-SSMParameterHistory" -contains $_} {"Get-SSMParameterList"}
+                    "Get-SSMDocument" {"Get-SSMDocumentList"; $strPropertyNameOfInterest_CreationDate = "CreatedDate"}
+                    {"Get-SSMParameter", "Get-SSMParameterHistory" -contains $_} {"Get-SSMParameterList"; $strPropertyNameOfInterest_CreationDate = "LastModifiedDate"; $strAddlInfoDescriptor = "last modified"}
                     default {$commandName}
                 } ## end inner switch
             } ## end case
@@ -85,7 +89,7 @@ process {
                 $_.$strPropertyNameOfInterest,    # CompletionText
                 $_.$strPropertyNameOfInterest,    # ListItemText
                 [System.Management.Automation.CompletionResultType]::ParameterValue,    # ResultType
-                ("{0}{1}" -f $_.$strPropertyNameOfInterest, $(if ($_ | Get-Member -Name $strPropertyNameOfInterest_CreationDate) {" (created $($_.$strPropertyNameOfInterest_CreationDate))"}))    # ToolTip
+                ("{0}{1}" -f $_.$strPropertyNameOfInterest, $(if ($_ | Get-Member -Name $strPropertyNameOfInterest_CreationDate) {" ($strAddlInfoDescriptor $($_.$strPropertyNameOfInterest_CreationDate))"}))    # ToolTip
             )
         } ## end Foreach-Object
     } ## end scriptblock
@@ -98,5 +102,53 @@ process {
     ## specific cmdlets with -Name parameter
     Write-Output Get-ELB2LoadBalancer, Get-ELB2TargetGroup, Get-SSMDocument, Get-SSMParameter, Get-SSMParameterHistory | Foreach-Object {
         if (Get-Command -Name $_ -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $_ -ParameterName Name -ScriptBlock $sbObjectNameCompleter}
+    } ## end Foreach-Object
+
+
+    ## completer scriptblock for -Service
+    $sbServiceCompleter = {
+        param($commandName, $parameterName, $wordToComplete, $commandAst, $commandBoundParameter)
+
+        Get-AWSService | Foreach-Object {
+            ## if no wordToComplete provided, or this item is like wordToComplete, use it
+            if (
+                [System.String]::IsNullOrEmpty($wordToComplete) -or
+                $_.Service -like "${wordToComplete}*"
+            ) {$_}
+        } | Sort-Object -Property Service | Foreach-Object {
+            New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
+                $_.Service,    # CompletionText
+                $_.Service,    # ListItemText
+                [System.Management.Automation.CompletionResultType]::ParameterValue,    # ResultType
+                ("{0} ({1}{2})" -f $_.Service, $_.ServiceName, $(if ($_ | Get-Member -Name ModuleName) {", module '$($_.ModuleName)'"}))    # ToolTip
+            )
+        } ## end Foreach-Object
+    } ## end scriptblock
+
+    ## specific cmdlets with -Service parameter
+    Write-Output Get-AWSCmdletName, Get-AWSService | Foreach-Object {
+        if (Get-Command -Name $_ -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $_ -ParameterName Service -ScriptBlock $sbServiceCompleter}
+    } ## end Foreach-Object
+
+
+    ## completer scriptblock for -ApiOperation
+    $sbApiOperationCompleter = {
+        param($commandName, $parameterName, $wordToComplete, $commandAst, $commandBoundParameter)
+
+        $hshParamFOrGetAWSCmdletName = @{ApiOperation = $wordToComplete.Trim("*"); MatchWithRegex = $true}
+
+        Get-AWSCmdletName @hshParamFOrGetAWSCmdletName | Sort-Object -Property ServiceName, CmdletName | Foreach-Object {
+            New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
+                $_.ServiceOperation,    # CompletionText
+                $_.ServiceOperation,    # ListItemText
+                [System.Management.Automation.CompletionResultType]::ParameterValue,    # ResultType
+                ("{0} (for service '{1}')" -f $_.ServiceOperation, $_.ServiceName)    # ToolTip
+            )
+        } ## end Foreach-Object
+    } ## end scriptblock
+
+    ## specific cmdlets with -Service parameter
+    Write-Output Get-AWSCmdletName | Foreach-Object {
+        if (Get-Command -Name $_ -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $_ -ParameterName ApiOperation -ScriptBlock $sbApiOperationCompleter}
     } ## end Foreach-Object
 }
