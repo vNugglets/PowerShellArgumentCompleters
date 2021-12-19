@@ -51,6 +51,30 @@ And, ¡voila! Now when you use the `VMware.PowerCLI` cmdlets (after connecting t
 ### ActiveDirectory Argument Completer quick info
 The argument completers for the `ActiveDirectory` module are currently centered around object types of `Computer`, `Group`, `OrganizationalUnit`, and `User`. At least one handy thing for getting these objects is a completer for the `-Properties` parameter, since none of us remember the names of all ~401 `User` properties, or all ~189 `Group` properties, etc.
 
+Some of the ActiveDirectory module commands for which this argument completer adds completion support:
+
+| Name | Parameter |
+| ---- | --------- |
+Get-ADComputer                  | Properties, SearchBase
+Get-ADFineGrainedPasswordPolicy | SearchBase
+Get-ADGroup                     | Properties, SearchBase
+Get-ADObject                    | SearchBase
+Get-ADOptionalFeature           | SearchBase
+Get-ADOrganizationalUnit        | Identity, Properties, SearchBase
+Get-ADServiceAccount            | SearchBase
+Get-ADUser                      | Properties, SearchBase
+Move-ADObject                   | TargetPath
+New-ADComputer                  | Path
+New-ADGroup                     | Path
+New-ADObject                    | Path
+New-ADOrganizationalUnit        | Path
+New-ADServiceAccount            | Path
+New-ADUser                      | Path
+Remove-ADOrganizationalUnit     | Identity
+Restore-ADObject                | TargetPath
+Search-ADAccount                | SearchBase
+Set-ADOrganizationalUnit        | Identity
+
 ### AWS Argument Completer quick info
 A quick list of the `AWS.Tools.*` cmdlet parameters whose values can be tab-completed after registering argument completers with the given script:
 
