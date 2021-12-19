@@ -4,6 +4,7 @@ Some info about using argument completers.  For other info, the [ReadMe.md](../R
 Contents:
 
 - [Getting Started](#gettingStarted)
+- [ActiveDirectory Argument Completer quick info](#ActiveDirectory-Argument-Completer-quick-info)
 - [AWS Argument Completer quick info](#AWS-Argument-Completer-quick-info)
 - [VMware-PowerCLI Argument Completer quick info](#VMware-PowerCLI-Argument-Completer-quick-info)
 - [Info about Argument Completers in a PowerShell Session](#infoAboutArgCompleterInPSSession)
@@ -17,6 +18,7 @@ To register the argument completers provided by this project, you need just a co
 - a PowerShell session with the given module(s) (`VMware.PowerCLI`, `AWS.Tools.*`) available to it (in the `$env:PSModulePath` path, at least -- for the VMware completers, the modules don't necessarily have to be imported, yet, but for the AWS completers, only cmdlets for imported modules will be considered for arugment completers, for the sake of speed (since there are 5,000+ cmdlets in all of the AWS cmdlets))
 
 The Argument completer scripts available as a part of this project:
+- `Register-VNActiveDirectoryArgumentCompleter`
 - `Register-VNAWSArgumentCompleter`
 - `Register-VNVMwarePowerCLIArgumentCompleter`
 
@@ -25,6 +27,8 @@ So, for getting/invoking any of these argument-completer scripts from the PowerS
 ## Install and invoke (if you already trust the contents)
 ## Install a completer script (again, specify the desired name of completer script)
 Find-Script Register-VNVMwarePowerCLIArgumentCompleter | Install-Script
+## or, collect 'em all! (install them all)
+Find-Script Register-VN*ArgumentCompleter | Install-Script
 
 ## run the script to register argument completers
 Register-VNVMwarePowerCLIArgumentCompleter.ps1
@@ -43,6 +47,9 @@ C:\temp\ScriptsToInspect\Register-VNVMwarePowerCLIArgumentCompleter.ps1
 ```
 
 And, ¡voila! Now when you use the `VMware.PowerCLI` cmdlets (after connecting to a vCenter server or ESXi host), you can use \<Tab> to tab-complete names of inventory objects for parameters.
+
+### ActiveDirectory Argument Completer quick info
+The argument completers for the `ActiveDirectory` module are currently centered around object types of `Computer`, `Group`, `OrganizationalUnit`, and `User`. At least one handy thing for getting these objects is a completer for the `-Properties` parameter, since none of us remember the names of all ~401 `User` properties, or all ~189 `Group` properties, etc.
 
 ### AWS Argument Completer quick info
 A quick list of the `AWS.Tools.*` cmdlet parameters whose values can be tab-completed after registering argument completers with the given script:
