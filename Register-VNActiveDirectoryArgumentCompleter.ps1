@@ -5,7 +5,7 @@ Param()
 process {
     ## AD object property name completer
     $sbPropertyNameCompleter = {
-        param($commandName, $parameterName, $wordToComplete, $commandAst, $commandBoundParameter)
+        param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
 
         ## get the AD schema for the default AD forest; used to get given object class and its properties
         $oADSchema = [DirectoryServices.ActiveDirectory.ActiveDirectorySchema]::GetSchema([System.DirectoryServices.ActiveDirectory.DirectoryContext]::new([System.DirectoryServices.ActiveDirectory.DirectoryContextType]::Forest, (Get-ADForest)))
@@ -21,7 +21,7 @@ process {
                 $_.Name,    # CompletionText
                 $_.Name,    # ListItemText
                 [System.Management.Automation.CompletionResultType]::ParameterValue,    # ResultType
-                ("{0} (type '{1}'{2})" -f $_.Name, $_.Syntax, $(if (-not [System.String]::IsNullOrEmpty($_.Description)) {", description '$($_.Description)'"}))    # ToolTip
+                ("[{0}] {1} (description of '{2}')" -f $_.Syntax, $_.Name, $_.Description)    # ToolTip
             )
         } ## end Foreach-Object
     } ## end scriptblock
@@ -34,18 +34,23 @@ process {
 
     ## AD OU DN completer, searching by OU DN
     $sbOUDNCompleter = {
-        param($commandName, $parameterName, $wordToComplete, $commandAst, $commandBoundParameter)
+        param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
 
         ## get OUs, supporting filtering _just_ on the OU name
         # Get-ADOrganizationalUnit -Filter {Name -like "${wordToCompleter}*"} | Foreach-Object {
         ## get OUs, supporting filtering on the OU DN itself; must be done by getting all OUs and then filtering client-side, as server-side DN filter only supports exact match, not wildcarding, seemingly
         #    and, sorting by the parent OUs, essentially, so matches are presented in "grouped-by-OU" order, for easiest recognition by consumer
-        (Get-ADOrganizationalUnit -Filter * -Properties Name, DistinguishedName, whenCreated).Where({$_.DistinguishedName -like "*${wordToComplete}*"}) | Sort-Object -Property {($arrlTmp = [System.Collections.ArrayList]($_.DistinguishedName).Split(",")).Reverse(); $arrlTmp -join ","} | Foreach-Object {
+        $hshParmForGetADOU = @{Filter = "*"; Properties = "Name", "DistinguishedName", "whenCreated", "Description"}
+        ## if these other params are specified to the command, pass them through
+        Write-Output Credential Server | Foreach-Object {
+            if ($fakeBoundParameter.ContainsKey($_)) {$hshParmForGetADOU[$_] = $fakeBoundParameter.$_}
+        }
+        (Get-ADOrganizationalUnit @hshParmForGetADOU).Where({$_.DistinguishedName -like "*${wordToComplete}*"}) | Sort-Object -Property {($arrlTmp = [System.Collections.ArrayList]($_.DistinguishedName).Split(",")).Reverse(); $arrlTmp -join ","} | Foreach-Object {
             New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
                 $(if ($_.DistinguishedName -match "[, ']") {'"{0}"' -f $_.DistinguishedName} else {$_.DistinguishedName}),    # CompletionText
                 $_.DistinguishedName,    # ListItemText
                 [System.Management.Automation.CompletionResultType]::ParameterValue,    # ResultType
-                ("{0} (created '{1}')" -f $_.DistinguishedName, $_.whenCreated)    # ToolTip
+                ("{0} (created '{1}', description of '{2}')" -f $_.DistinguishedName, $_.whenCreated, $_.Description)    # ToolTip
             )
         } ## end Foreach-Object
     } ## end scriptblock
@@ -60,4 +65,25 @@ process {
     Register-ArgumentCompleter -CommandName (Write-Output New-ADComputer, New-ADGroup, New-ADObject, New-ADOrganizationalUnit, New-ADServiceAccount, New-ADUser) -ParameterName Path -ScriptBlock $sbOUDNCompleter
     ## param Identity
     Register-ArgumentCompleter -CommandName (Get-Command -Module ActiveDirectory -ParameterName Identity -Noun ADOrganizationalUnit).Name -ParameterName Identity -ScriptBlock $sbOUDNCompleter
+
+
+    ## AD Group name (Identity) completer
+    $sbGroupIdentityCompleter = {
+        param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
+
+        $hshParmForGetADGroup = @{Filter = "Name -like '${wordToComplete}*'"; Properties = "Name", "Description"}
+        ## if these other params are specified to the command, pass them through
+        Write-Output Credential Server | Foreach-Object {
+            if ($fakeBoundParameter.ContainsKey($_)) {$hshParmForGetADGroup[$_] = $fakeBoundParameter.$_}
+        }
+        Get-ADGroup @hshParmForGetADGroup | Sort-Object -Property Name | Foreach-Object {
+            New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
+                $_.Name,    # CompletionText
+                $_.Name,    # ListItemText
+                [System.Management.Automation.CompletionResultType]::ParameterValue,    # ResultType
+                ("{0} ({1} {2} group, description of '{3}')" -f $_.DistinguishedName, $_.GroupScope, $_.GroupCategory, $_.Description)    # ToolTip
+            )
+        } ## end Foreach-Object
+    } ## end scriptblock
+    Register-ArgumentCompleter -CommandName (Write-Output Get-ADGroup) -ParameterName Identity -ScriptBlock $sbGroupIdentityCompleter
 }

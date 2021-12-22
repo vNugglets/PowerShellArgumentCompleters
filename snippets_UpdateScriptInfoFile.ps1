@@ -1,15 +1,24 @@
 ## Some code to help automate the updating of the ScriptInfo of a script file (will create it if it does not yet exist, too)
 
-## for Register-VNAWSArgumentCompleter.ps1
+## path to local repo clone; used for setting/updating script file info
+$strPathToRepoClone = "blah"
+
+## for Register-VNActiveDirectoryArgumentCompleter.ps1
 $oCfg = @{
-	strPathToScriptFile = "<pathToRepoCloneHere>\PowerShellArgumentCompleters\Register-VNAWSArgumentCompleter.ps1"
-	strPathToScriptFileInfoDatafile = "<pathToRepoCloneHere>\PowerShellArgumentCompleters\ScriptFileInfoConfig_Register-VNAWSArgumentCompleter.psd1"
+	strPathToScriptFile = "$strPathToRepoClone\Register-VNActiveDirectoryArgumentCompleter.ps1"
+	strPathToScriptFileInfoDatafile = "$strPathToRepoClone\ScriptFileInfoConfig_Register-VNActiveDirectoryArgumentCompleter.psd1"
 }
 
-## or, for Register-VNVMwarePowerCLIArgumentCompleter.ps1
+## OR, for Register-VNAWSArgumentCompleter.ps1
 $oCfg = @{
-	strPathToScriptFile = "<pathToRepoCloneHere>\PowerShellArgumentCompleters\Register-VNVMwarePowerCLIArgumentCompleter.ps1"
-	strPathToScriptFileInfoDatafile = "<pathToRepoCloneHere>\PowerShellArgumentCompleters\ScriptFileInfoConfig_Register-VNVMwarePowerCLIArgumentCompleter.psd1"
+	strPathToScriptFile = "$strPathToRepoClone\Register-VNAWSArgumentCompleter.ps1"
+	strPathToScriptFileInfoDatafile = "$strPathToRepoClone\ScriptFileInfoConfig_Register-VNAWSArgumentCompleter.psd1"
+}
+
+## OR, for Register-VNVMwarePowerCLIArgumentCompleter.ps1
+$oCfg = @{
+	strPathToScriptFile = "$strPathToRepoClone\Register-VNVMwarePowerCLIArgumentCompleter.ps1"
+	strPathToScriptFileInfoDatafile = "$strPathToRepoClone\ScriptFileInfoConfig_Register-VNVMwarePowerCLIArgumentCompleter.psd1"
 }
 
 

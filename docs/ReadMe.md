@@ -15,7 +15,7 @@ Contents:
 ### Getting Started
 To register the argument completers provided by this project, you need just a couple of things:
 - the script file in which the argument completer definitions and registration statements reside (save or install it from the PowerShell Gallery)
-- a PowerShell session with the given module(s) (`VMware.PowerCLI`, `AWS.Tools.*`) available to it (in the `$env:PSModulePath` path, at least -- for the VMware completers, the modules don't necessarily have to be imported, yet, but for the AWS completers, only cmdlets for imported modules will be considered for arugment completers, for the sake of speed (since there are 5,000+ cmdlets in all of the AWS cmdlets))
+- a PowerShell session with the given module(s) (`ActiveDirectory`, `AWS.Tools.*`, `VMware.PowerCLI`) available to it (in the `$env:PSModulePath` path, at least -- for the VMware completers, the modules don't necessarily have to be imported, yet, but for the AWS completers, only cmdlets for imported modules will be considered for arugment completers, for the sake of speed (since there are 12,000+ cmdlets in all of the AWS modules)). Note: the AWS completers will also work for the monolithic AWS modules (`AWSPowerShell` and `AWSPowerShell.NetCore`), but the way forward is to use the per-service AWS modules (provided by AWS as the `AWS.Tools.*` individual modules).
 
 The Argument completer scripts available as a part of this project:
 - `Register-VNActiveDirectoryArgumentCompleter`
@@ -55,14 +55,14 @@ Some of the ActiveDirectory module commands for which this argument completer ad
 
 | Name | Parameter |
 | ---- | --------- |
-Get-ADComputer                  | Properties, SearchBase
+Get-ADComputer                  | {Properties, SearchBase}
 Get-ADFineGrainedPasswordPolicy | SearchBase
-Get-ADGroup                     | Properties, SearchBase
+Get-ADGroup                     | {Identity, Properties, SearchBase}
 Get-ADObject                    | SearchBase
 Get-ADOptionalFeature           | SearchBase
-Get-ADOrganizationalUnit        | Identity, Properties, SearchBase
+Get-ADOrganizationalUnit        | {Identity, Properties, SearchBase}
 Get-ADServiceAccount            | SearchBase
-Get-ADUser                      | Properties, SearchBase
+Get-ADUser                      | {Properties, SearchBase}
 Move-ADObject                   | TargetPath
 New-ADComputer                  | Path
 New-ADGroup                     | Path
@@ -75,9 +75,20 @@ Restore-ADObject                | TargetPath
 Search-ADAccount                | SearchBase
 Set-ADOrganizationalUnit        | Identity
 
-### AWS Argument Completer quick info
-A quick list of the `AWS.Tools.*` cmdlet parameters whose values can be tab-completed after registering argument completers with the given script:
+Quick examples of some argument tab completions for cmdlets in the ActiveDirectory module:
+```PowerShell
+## tab complete the names of the AD groups that start with 'vCenter_' in the given AD domain, using specified creds
+Get-ADGroup -Server myotherdom -Credential $myCred vCenter_<tab>
 
+## display an interactive list of matching AD OUs through which to navigate (arrow keys) to select the desired OU
+Get-ADOrganizationalUnit groups<CTRL+Space>
+
+```
+
+### AWS Argument Completer quick info
+As of v1.2.0 of the AWS completers, the script registers about 310 additional cmdlet/param completion combinations. A quick list of the `AWS.Tools.*` cmdlet parameters whose values can be tab-completed after registering argument completers with the given script:
+
+- `-ApiOperation`
 - `-AutoScalingGroupName`
 - `-BucketName`
 - `-FunctionName`
@@ -85,6 +96,7 @@ A quick list of the `AWS.Tools.*` cmdlet parameters whose values can be tab-comp
 - `-LogGroupName`
 - `-LogGroupNamePrefix`
 - `-RoleName`
+- `-Service`
 - `-StackName`
 - ..and a few more (`Name` on some cmdlets, for example)
 
