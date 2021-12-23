@@ -108,7 +108,7 @@ PS C:\>
 PS C:\> ## see how many scenarios now have argument completers available, if we want to use them
 PS C:\> Get-ArgumentCompleter.ps1 | Measure-Object
 
-Count    : 1139
+Count    : 919
 Average  :
 Sum      :
 Maximum  :

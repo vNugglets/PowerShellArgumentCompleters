@@ -275,7 +275,33 @@ process {
         } ## end foreach-object
     } ## end scriptblock
 
+    ## for this cmdlet
     if ($arrCommandsOfInterest = Get-Command -Module VMware.* -Name Get-Tag -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsOfInterest -ParameterName Name -ScriptBlock $sbTagNameCompleter}
+    ## for all cmdlets w Param named Tag
+    if ($arrCommandsOfInterest = Get-Command -Module VMware.* -ParameterName Tag -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsOfInterest -ParameterName Tag -ScriptBlock $sbTagNameCompleter}
+
+
+
+    $sbTagCategoryNameCompleter = {
+        param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
+
+        $hshParamForGetCmdlet = @{Name = "${wordToComplete}*"}
+        if ($fakeBoundParameter.ContainsKey("Server")) {$hshParamForGetCmdlet["Server"] = $fakeBoundParameter.Server}
+        Get-TagCategory @hshParamForGetCmdlet | Sort-Object -Property Name | Foreach-Object {
+            ## make the Completion and ListItem text values; happen to be the same for now, but could be <anything of interest/value>
+            New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
+                $(if ($_.Name -match "\s") {'"{0}"' -f $_.Name} else {$_.Name}),    # CompletionText
+                $_.Name,    # ListItemText
+                [System.Management.Automation.CompletionResultType]::ParameterValue,    # ResultType
+                ("{0} (description '{1}', cardinality '{2}')" -f $_.Name, $_.Description, $_.Cardinality)    # ToolTip
+            )
+        } ## end foreach-object
+    } ## end scriptblock
+
+    ## for this cmdlet
+    if ($arrCommandsOfInterest = Get-Command -Module VMware.* -Name Get-TagCategory -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsOfInterest -ParameterName Name -ScriptBlock $sbTagCategoryNameCompleter}
+    ## for all cmdlets w Param named Tag
+    if ($arrCommandsOfInterest = Get-Command -Module VMware.* -ParameterName Category -Noun Tag* -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsOfInterest -ParameterName Category -ScriptBlock $sbTagCategoryNameCompleter}
 
 
     ## will need more research (are specific to a particular instance of an object, for example, or current retrieval method is sllloowww)
