@@ -304,6 +304,33 @@ process {
     if ($arrCommandsOfInterest = Get-Command -Module VMware.* -ParameterName Category -Noun Tag* -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsOfInterest -ParameterName Category -ScriptBlock $sbTagCategoryNameCompleter}
 
 
+
+    ## completer for the Name or ID of VIPrivileges
+    $sbVIPrivilegeCompleter = {
+        param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
+
+        ## if the param is ID, use that for the Get; else, use Name for the get
+        $hshParamForGetCmdlet = @{$(if ($parameterName -eq "Id") {$parameterName} else {"Name"}) = "${wordToComplete}*"}
+        ## if this is trying to get Privilege _Groups_, add the PrivilegeGroup switch parameter
+        if ($parameterName -eq "Group" -or ($true -eq $fakeBoundParameter["PrivilegeGroup"])) {$hshParamForGetCmdlet["PrivilegeGroup"] = $true}
+        if ($fakeBoundParameter.ContainsKey("Server")) {$hshParamForGetCmdlet["Server"] = $fakeBoundParameter.Server}
+
+        ## the property of interest, based on the parameterName
+        $strPropertyOfInterest = if ($parameterName -eq "Id") {$parameterName} else {"Name"}
+        Get-VIPrivilege @hshParamForGetCmdlet | Sort-Object -Property $strPropertyOfInterest | Foreach-Object {
+            ## make the Completion and ListItem text values; happen to be the same for now, but could be <anything of interest/value>
+            New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
+                $(if ($_.$strPropertyOfInterest -match "\s") {'"{0}"' -f $_.$strPropertyOfInterest} else {$_.$strPropertyOfInterest}),    # CompletionText
+                $_.$strPropertyOfInterest,    # ListItemText
+                [System.Management.Automation.CompletionResultType]::ParameterValue,    # ResultType
+                ("[{0}] {1} (description '{2}'{3})" -f $(if ($_ -is [VMware.VimAutomation.Types.PermissionManagement.PrivilegeGroup]) {"PrivilegeGroup"} else {"PrivilegeItem"}), $_.$strPropertyOfInterest, $_.Description, $(if ($_ -is [VMware.VimAutomation.Types.PermissionManagement.PrivilegeItem]) {", in group ID '$($_.ParentGroupId)'"}))    # ToolTip
+            )
+        } ## end foreach-object
+    } ## end scriptblock
+
+    if ($arrCommandsOfInterest = Get-Command -Module VMware.* -Name Get-VIPrivilege -ErrorAction:SilentlyContinue) {Write-Output Name ID Group | Foreach-Object {Register-ArgumentCompleter -CommandName $arrCommandsOfInterest -ParameterName $_ -ScriptBlock $sbVIPrivilegeCompleter}}
+
+
     ## will need more research (are specific to a particular instance of an object, for example, or current retrieval method is sllloowww)
     ## Snapshot, PortGroup, NetworkAdapter, HardDisk, VirtualSwitch, VDPortGroup, Tag
 } ## end process
