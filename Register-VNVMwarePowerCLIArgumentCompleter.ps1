@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.2.0
+.VERSION 1.3.0
 
 .GUID 3290ce71-109f-486d-8f58-49eb21d6c334
 
@@ -10,7 +10,7 @@
 
 .COPYRIGHT MIT License
 
-.TAGS vNugglets PowerShell ArgumentCompleter Parameter VMware PowerCLI AdminOptimization NaturalExperience TabComplete TabCompletion Completion
+.TAGS vNugglets PowerShell ArgumentCompleter Parameter VMware PowerCLI AdminOptimization NaturalExperience TabComplete TabCompletion Completion Awesome
 
 .LICENSEURI https://github.com/vNugglets/PowerShellArgumentCompleters/blob/master/License
 
@@ -30,6 +30,8 @@ See ReadMe and other docs at https://github.com/vNugglets/PowerShellArgumentComp
 .PRIVATEDATA
 
 #> 
+
+
 
 
 
@@ -256,6 +258,128 @@ process {
     } ## end scriptblock
 
     if ($arrCommandsOfInterest = Get-Command -Module VMware.* -ParameterName Server -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsOfInterest -ParameterName Server -ScriptBlock $sbVIServerNameCompleter}
+
+
+
+    $sbTagNameCompleter = {
+        param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
+
+        $hshParamForGetCmdlet = @{Name = "${wordToComplete}*"}
+        if ($fakeBoundParameter.ContainsKey("Server")) {$hshParamForGetCmdlet["Server"] = $fakeBoundParameter.Server}
+        Get-Tag @hshParamForGetCmdlet | Sort-Object -Property Name | Foreach-Object {
+            ## make the Completion and ListItem text values; happen to be the same for now, but could be <anything of interest/value>
+            New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
+                $(if ($_.Name -match "\s") {'"{0}"' -f $_.Name} else {$_.Name}),    # CompletionText
+                $_.Name,    # ListItemText
+                [System.Management.Automation.CompletionResultType]::ParameterValue,    # ResultType
+                ("{0} (category '{1}', description '{2}')" -f $_.Name, $_.Category, $_.Description)    # ToolTip
+            )
+        } ## end foreach-object
+    } ## end scriptblock
+
+    ## for this cmdlet
+    if ($arrCommandsOfInterest = Get-Command -Module VMware.* -Name Get-Tag -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsOfInterest -ParameterName Name -ScriptBlock $sbTagNameCompleter}
+    ## for all cmdlets w Param named Tag
+    if ($arrCommandsOfInterest = Get-Command -Module VMware.* -ParameterName Tag -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsOfInterest -ParameterName Tag -ScriptBlock $sbTagNameCompleter}
+
+
+
+    $sbTagCategoryNameCompleter = {
+        param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
+
+        $hshParamForGetCmdlet = @{Name = "${wordToComplete}*"}
+        if ($fakeBoundParameter.ContainsKey("Server")) {$hshParamForGetCmdlet["Server"] = $fakeBoundParameter.Server}
+        Get-TagCategory @hshParamForGetCmdlet | Sort-Object -Property Name | Foreach-Object {
+            ## make the Completion and ListItem text values; happen to be the same for now, but could be <anything of interest/value>
+            New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
+                $(if ($_.Name -match "\s") {'"{0}"' -f $_.Name} else {$_.Name}),    # CompletionText
+                $_.Name,    # ListItemText
+                [System.Management.Automation.CompletionResultType]::ParameterValue,    # ResultType
+                ("{0} (description '{1}', cardinality '{2}')" -f $_.Name, $_.Description, $_.Cardinality)    # ToolTip
+            )
+        } ## end foreach-object
+    } ## end scriptblock
+
+    ## for this cmdlet
+    if ($arrCommandsOfInterest = Get-Command -Module VMware.* -Name Get-TagCategory -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsOfInterest -ParameterName Name -ScriptBlock $sbTagCategoryNameCompleter}
+    ## for all cmdlets w Param named Tag
+    if ($arrCommandsOfInterest = Get-Command -Module VMware.* -ParameterName Category -Noun Tag* -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsOfInterest -ParameterName Category -ScriptBlock $sbTagCategoryNameCompleter}
+
+
+
+    ## completer for the Name or ID of VIPrivileges
+    $sbVIPrivilegeCompleter = {
+        param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
+
+        ## if the param is ID, use that for the Get; else, use Name for the get
+        $hshParamForGetCmdlet = @{$(if ($parameterName -eq "Id") {$parameterName} else {"Name"}) = "${wordToComplete}*"}
+        ## if this is trying to get Privilege _Groups_, add the PrivilegeGroup switch parameter
+        if ($parameterName -eq "Group" -or ($true -eq $fakeBoundParameter["PrivilegeGroup"])) {$hshParamForGetCmdlet["PrivilegeGroup"] = $true}
+        if ($fakeBoundParameter.ContainsKey("Server")) {$hshParamForGetCmdlet["Server"] = $fakeBoundParameter.Server}
+
+        ## the scriptblock to get the VIPrivilege objects of interest
+        #   if the command is Set-VIRole
+        $sbGetVIPrivilegeThings = if ($commandName -eq "Set-VIRole" -and $fakeBoundParameter.ContainsKey("Role")) {
+            ## if Adding privs to this VIRole, then get only the VIPrivs _not_ already a part of the role
+            if ($parameterName -eq "AddPrivilege") {
+                {
+                    $arrPrivilegesInThisRole = Get-VIPrivilege @hshParamForGetCmdlet -Role $fakeBoundParameter["Role"]
+                    (Get-VIPrivilege @hshParamForGetCmdlet).Where({$_.Id -notin $arrPrivilegesInThisRole.Id})
+                }
+            }
+            ## else, removing VIPrivs from the VIRole, so get only the VIPrivs that are a part of this role
+            else {
+                $hshParamForGetCmdlet["Role"] = $fakeBoundParameter["Role"]
+                {Get-VIPrivilege @hshParamForGetCmdlet}
+            }
+        }
+        else {
+            ## else, just get the VIPrivs with params and no additional filtering
+            {Get-VIPrivilege @hshParamForGetCmdlet}
+        }
+        ## the property of interest, based on the parameterName
+        $strPropertyOfInterest = if ($parameterName -eq "Id") {$parameterName} else {"Name"}
+        & $sbGetVIPrivilegeThings | Sort-Object -Property $strPropertyOfInterest | Foreach-Object {
+            ## make the Completion and ListItem text values; happen to be the same for now, but could be <anything of interest/value>
+            New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
+                $(if ($_.$strPropertyOfInterest -match "\s") {'"{0}"' -f $_.$strPropertyOfInterest} else {$_.$strPropertyOfInterest}),    # CompletionText
+                $_.$strPropertyOfInterest,    # ListItemText
+                [System.Management.Automation.CompletionResultType]::ParameterValue,    # ResultType
+                ("[{0}] {1} (description '{2}'{3})" -f $(if ($_ -is [VMware.VimAutomation.Types.PermissionManagement.PrivilegeGroup]) {"PrivilegeGroup"} else {"PrivilegeItem"}), $_.$strPropertyOfInterest, $_.Description, $(if ($_ -is [VMware.VimAutomation.Types.PermissionManagement.PrivilegeItem]) {", in group ID '$($_.ParentGroupId)'"}))    # ToolTip
+            )
+        } ## end foreach-object
+    } ## end scriptblock
+
+    ## for this cmdlet
+    if ($arrCommandsOfInterest = Get-Command -Module VMware.* -Name Get-VIPrivilege -ErrorAction:SilentlyContinue) {Write-Output Name ID Group | Foreach-Object {Register-ArgumentCompleter -CommandName $arrCommandsOfInterest -ParameterName $_ -ScriptBlock $sbVIPrivilegeCompleter}}
+    ## for this cmdlet
+    if ($arrCommandsOfInterest = Get-Command -Module VMware.* -Name New-VIRole -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsOfInterest -ParameterName Privilege -ScriptBlock $sbVIPrivilegeCompleter}
+    ## for Set-VIRole cmdlet
+    if ($arrCommandsOfInterest = Get-Command -Module VMware.* -Name Set-VIRole -ErrorAction:SilentlyContinue) {Write-Output AddPrivilege RemovePrivilege | Foreach-Object {Register-ArgumentCompleter -CommandName $arrCommandsOfInterest -ParameterName $_ -ScriptBlock $sbVIPrivilegeCompleter}}
+
+
+
+    $sbVirtualNetworkCompleter = {
+        param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
+
+        $hshParamForGetCmdlet = @{Name = "${wordToComplete}*"}
+        Write-Output Server Location NetworkType | Foreach-Object {
+            if ($fakeBoundParameter.ContainsKey($_)) {$hshParamForGetCmdlet[$_] = $fakeBoundParameter.$_}
+        }
+        Get-VirtualNetwork @hshParamForGetCmdlet | Sort-Object -Property Name | Foreach-Object {
+            ## make the Completion and ListItem text values; happen to be the same for now, but could be <anything of interest/value>
+            New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
+                $(if ($_.Name -match "\s") {'"{0}"' -f $_.Name} else {$_.Name}),    # CompletionText
+                $_.Name,    # ListItemText
+                [System.Management.Automation.CompletionResultType]::ParameterValue,    # ResultType
+                ("[{0}] {1} (id '{2}')" -f $_.NetworkType, $_.Name, $_.Id)    # ToolTip
+            )
+        } ## end foreach-object
+    } ## end scriptblock
+
+    ## for this cmdlet
+    if ($arrCommandsOfInterest = Get-Command -Module VMware.* -Name Get-VirtualNetwork -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsOfInterest -ParameterName Name -ScriptBlock $sbVirtualNetworkCompleter}
+
 
     ## will need more research (are specific to a particular instance of an object, for example, or current retrieval method is sllloowww)
     ## Snapshot, PortGroup, NetworkAdapter, HardDisk, VirtualSwitch, VDPortGroup, Tag
