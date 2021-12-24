@@ -328,8 +328,10 @@ process {
         } ## end foreach-object
     } ## end scriptblock
 
+    ## for this cmdlet
     if ($arrCommandsOfInterest = Get-Command -Module VMware.* -Name Get-VIPrivilege -ErrorAction:SilentlyContinue) {Write-Output Name ID Group | Foreach-Object {Register-ArgumentCompleter -CommandName $arrCommandsOfInterest -ParameterName $_ -ScriptBlock $sbVIPrivilegeCompleter}}
-
+    ## for this cmdlet
+    if ($arrCommandsOfInterest = Get-Command -Module VMware.* -Name New-VIRole -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsOfInterest -ParameterName Privilege -ScriptBlock $sbVIPrivilegeCompleter}
 
     ## will need more research (are specific to a particular instance of an object, for example, or current retrieval method is sllloowww)
     ## Snapshot, PortGroup, NetworkAdapter, HardDisk, VirtualSwitch, VDPortGroup, Tag
