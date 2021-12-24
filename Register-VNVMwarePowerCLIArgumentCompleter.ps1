@@ -356,6 +356,29 @@ process {
     if ($arrCommandsOfInterest = Get-Command -Module VMware.* -Name Set-VIRole -ErrorAction:SilentlyContinue) {Write-Output AddPrivilege RemovePrivilege | Foreach-Object {Register-ArgumentCompleter -CommandName $arrCommandsOfInterest -ParameterName $_ -ScriptBlock $sbVIPrivilegeCompleter}}
 
 
+
+    $sbVirtualNetworkCompleter = {
+        param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
+
+        $hshParamForGetCmdlet = @{Name = "${wordToComplete}*"}
+        Write-Output Server Location NetworkType | Foreach-Object {
+            if ($fakeBoundParameter.ContainsKey($_)) {$hshParamForGetCmdlet[$_] = $fakeBoundParameter.$_}
+        }
+        Get-VirtualNetwork @hshParamForGetCmdlet | Sort-Object -Property Name | Foreach-Object {
+            ## make the Completion and ListItem text values; happen to be the same for now, but could be <anything of interest/value>
+            New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
+                $(if ($_.Name -match "\s") {'"{0}"' -f $_.Name} else {$_.Name}),    # CompletionText
+                $_.Name,    # ListItemText
+                [System.Management.Automation.CompletionResultType]::ParameterValue,    # ResultType
+                ("[{0}] {1} (id '{2}')" -f $_.NetworkType, $_.Name, $_.Id)    # ToolTip
+            )
+        } ## end foreach-object
+    } ## end scriptblock
+
+    ## for this cmdlet
+    if ($arrCommandsOfInterest = Get-Command -Module VMware.* -Name Get-VirtualNetwork -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsOfInterest -ParameterName Name -ScriptBlock $sbVirtualNetworkCompleter}
+
+
     ## will need more research (are specific to a particular instance of an object, for example, or current retrieval method is sllloowww)
     ## Snapshot, PortGroup, NetworkAdapter, HardDisk, VirtualSwitch, VDPortGroup, Tag
 } ## end process
