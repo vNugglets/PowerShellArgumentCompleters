@@ -10,7 +10,7 @@
 	LicenseUri = "https://github.com/vNugglets/PowerShellArgumentCompleters/blob/main/License"
 	ProjectUri = "https://github.com/vNugglets/PowerShellArgumentCompleters"
 	ReleaseNotes = "See ReadMe and other docs at https://github.com/vNugglets/PowerShellArgumentCompleters"
-	Tags = "vNugglets", "PowerShell", "ArgumentCompleter", "Parameter", "VMware", "PowerCLI", "AdminOptimization", "NaturalExperience", "TabComplete", "TabCompletion", "Completion"
+	Tags = "vNugglets", "PowerShell", "ArgumentCompleter", "Parameter", "VMware", "PowerCLI", "AdminOptimization", "NaturalExperience", "TabComplete", "TabCompletion", "Completion", "Awesome"
 	# RequiredModules
 	# ExternalModuleDependencies
 	# RequiredScripts

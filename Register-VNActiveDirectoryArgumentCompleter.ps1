@@ -1,6 +1,49 @@
+
+<#PSScriptInfo
+
+.VERSION 1.0.0
+
+.GUID d7c13ce3-a513-4a05-8093-8e098a7e9557
+
+.AUTHOR Matt Boren (@mtboren)
+
+.COMPANYNAME vNugglets
+
+.COPYRIGHT MIT License
+
+.TAGS vNugglets PowerShell ArgumentCompleter Parameter ActiveDirectory AD AdminOptimization NaturalExperience TabComplete TabCompletion Completion Awesome
+
+.LICENSEURI https://github.com/vNugglets/PowerShellArgumentCompleters/blob/main/License
+
+.PROJECTURI https://github.com/vNugglets/PowerShellArgumentCompleters
+
+.ICONURI https://avatars0.githubusercontent.com/u/22530966
+
+.EXTERNALMODULEDEPENDENCIES
+
+.REQUIREDSCRIPTS
+
+.EXTERNALSCRIPTDEPENDENCIES
+
+.RELEASENOTES
+See ReadMe and other docs at https://github.com/vNugglets/PowerShellArgumentCompleters
+
+.PRIVATEDATA
+
+#>
+
 #Requires -Module ActiveDirectory
 
+<#
+
+.DESCRIPTION
+Script to register PowerShell argument completers for many parameters of ActiveDirectory module cmdlets, making us even more productive on the command line. This enables the tab-completion of actual ActiveDirectory objects' and properties' names as values to parameters to ActiveDirectory cmdlets -- neat!
+
+#>
+
 Param()
+
+
 
 process {
     ## AD object property name completer
