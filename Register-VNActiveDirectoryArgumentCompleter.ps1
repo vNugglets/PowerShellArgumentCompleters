@@ -120,8 +120,9 @@ process {
             if ($fakeBoundParameter.ContainsKey($_)) {$hshParmForGetADGroup[$_] = $fakeBoundParameter.$_}
         }
         Get-ADGroup @hshParmForGetADGroup | Sort-Object -Property Name | Foreach-Object {
+            $strCompletionText = if ($_.Name -match "\s") {'"{0}"' -f $_.Name} else {$_.Name}
             New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
-                $_.Name,    # CompletionText
+                $strCompletionText,    # CompletionText
                 $_.Name,    # ListItemText
                 [System.Management.Automation.CompletionResultType]::ParameterValue,    # ResultType
                 ("{0} ({1} {2} group, description of '{3}')" -f $_.DistinguishedName, $_.GroupScope, $_.GroupCategory, $_.Description)    # ToolTip
