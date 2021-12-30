@@ -129,5 +129,9 @@ process {
             )
         } ## end Foreach-Object
     } ## end scriptblock
+
+    ## for these cmdlets
     Register-ArgumentCompleter -CommandName (Write-Output Get-ADGroup Remove-ADGroup Set-ADGroup Add-ADGroupMember Get-ADGroupMember Remove-ADGroupMember) -ParameterName Identity -ScriptBlock $sbGroupIdentityCompleter
+    ## for MemberOf param
+    Register-ArgumentCompleter -CommandName (Write-Output Add-ADPrincipalGroupMembership) -ParameterName MemberOf -ScriptBlock $sbGroupIdentityCompleter
 }
