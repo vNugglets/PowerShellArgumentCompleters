@@ -110,7 +110,7 @@ process {
     Register-ArgumentCompleter -CommandName (Get-Command -Module ActiveDirectory -ParameterName Identity -Noun ADOrganizationalUnit).Name -ParameterName Identity -ScriptBlock $sbOUDNCompleter
 
 
-    ## AD Group name (Identity) completer
+    ## AD Group name completer
     $sbGroupIdentityCompleter = {
         param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
 
@@ -134,4 +134,41 @@ process {
     Register-ArgumentCompleter -CommandName (Write-Output Get-ADGroup Remove-ADGroup Set-ADGroup Add-ADGroupMember Get-ADGroupMember Remove-ADGroupMember) -ParameterName Identity -ScriptBlock $sbGroupIdentityCompleter
     ## for MemberOf param
     Register-ArgumentCompleter -CommandName (Write-Output Add-ADPrincipalGroupMembership) -ParameterName MemberOf -ScriptBlock $sbGroupIdentityCompleter
+
+
+
+    ## AD Group membership completer (say, for a principal, or for members of a group)
+    $sbGroupMembershipCompleter = {
+        param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
+
+        ## if the -Idenity param is in the command line, get the corresponding AD object and return info on its members
+        if ($fakeBoundParameter.ContainsKey("Identity")) {
+            ## if these other params are specified to the command, pass them through
+            Write-Output Credential Server | Foreach-Object -Begin {$hshParmForGet = @{}} {
+                if ($fakeBoundParameter.ContainsKey($_)) {$hshParmForGet[$_] = $fakeBoundParameter.$_}
+            }
+            $strThisIdentity = $fakeBoundParameter["Identity"]
+            $strCmdletToGetThisIdentity, $strMembershipPropertyOfInterest = Switch ($commandName) {
+                "Remove-ADGroupMember" {"Get-ADGroup", "members"; break} ## "members" property name seems case sensitive in at least some AD envs
+                "Remove-ADPrincipalGroupMembership" {"Get-ADObject", "MemberOf"; break}
+            }
+            $oThisADObject = & $strCmdletToGetThisIdentity -Properties $strMembershipPropertyOfInterest -Filter "(Name -eq '$strThisIdentity') -or (SamAccountName -eq '$strThisIdentity')" @hshParmForGet
+            ## if this AD object has members (for group) or is a member of things (for principal), get them
+            if (($oThisADObject.$strMembershipPropertyOfInterest | Measure-Object).Count -gt 0) {
+                $oThisADObject.$strMembershipPropertyOfInterest | Foreach-Object {Get-ADObject @hshParmForGet -Identity $_ -Properties Description, SamAccountName} | Sort-Object -Property Name | Foreach-Object {
+                    $strCompletionText = if ($_.SamAccountName -match "\s") {'"{0}"' -f $_.SamAccountName} else {$_.SamAccountName}
+                    New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
+                        $strCompletionText,    # CompletionText
+                        $_.SamAccountName,    # ListItemText
+                        [System.Management.Automation.CompletionResultType]::ParameterValue,    # ResultType
+                        ("[{0}] {1} (description of '{2}')" -f $($_.ObjectClass), $_.DistinguishedName, $_.Description)    # ToolTip
+                    )
+                } ## end Foreach-Object
+            }
+        }
+    } ## end scriptblock
+    ## for these cmdlets
+    Register-ArgumentCompleter -CommandName (Write-Output Remove-ADPrincipalGroupMembership) -ParameterName MemberOf -ScriptBlock $sbGroupMembershipCompleter
+    Register-ArgumentCompleter -CommandName (Write-Output Remove-ADGroupMember) -ParameterName Members -ScriptBlock $sbGroupMembershipCompleter
+
 }
