@@ -26,11 +26,13 @@ So, for getting/invoking any of these argument-completer scripts from the PowerS
 ``` PowerShell
 ## Install and invoke (if you already trust the contents)
 ## Install a completer script (again, specify the desired name of completer script)
+Find-Script Register-VNActiveDirectoryArgumentCompleter | Install-Script
+Find-Script Register-VNAWSArgumentCompleter | Install-Script
 Find-Script Register-VNVMwarePowerCLIArgumentCompleter | Install-Script
 ## or, collect 'em all! (install them all)
 Find-Script Register-VN*ArgumentCompleter | Install-Script
 
-## run the script to register argument completers
+## once installed (which should then be in the Path), run the script to register argument completers
 Register-VNVMwarePowerCLIArgumentCompleter.ps1
 
 
@@ -55,30 +57,37 @@ Some of the ActiveDirectory module commands for which this argument completer ad
 
 | Name | Parameter |
 | ---- | --------- |
-Get-ADComputer                  | {Properties, SearchBase}
-Get-ADFineGrainedPasswordPolicy | SearchBase
-Get-ADGroup                     | {Identity, Properties, SearchBase}
-Get-ADObject                    | SearchBase
-Get-ADOptionalFeature           | SearchBase
-Get-ADOrganizationalUnit        | {Identity, Properties, SearchBase}
-Get-ADServiceAccount            | SearchBase
-Get-ADUser                      | {Properties, SearchBase}
-Move-ADObject                   | TargetPath
-New-ADComputer                  | Path
-New-ADGroup                     | Path
-New-ADObject                    | Path
-New-ADOrganizationalUnit        | Path
-New-ADServiceAccount            | Path
-New-ADUser                      | Path
-Remove-ADOrganizationalUnit     | Identity
-Restore-ADObject                | TargetPath
-Search-ADAccount                | SearchBase
-Set-ADOrganizationalUnit        | Identity
+Add-ADGroupMember                 | Identity
+Add-ADPrincipalGroupMembership    | MemberOf
+Get-ADComputer                    | {Properties, SearchBase}
+Get-ADFineGrainedPasswordPolicy   | SearchBase
+Get-ADGroup                       | {Identity, Properties, SearchBase}
+Get-ADGroupMember                 | Identity
+Get-ADObject                      | SearchBase
+Get-ADOptionalFeature             | SearchBase
+Get-ADOrganizationalUnit          | {Identity, Properties, SearchBase}
+Get-ADServiceAccount              | SearchBase
+Get-ADUser                        | {Properties, SearchBase}
+Move-ADObject                     | TargetPath
+New-ADComputer                    | Path
+New-ADGroup                       | Path
+New-ADObject                      | Path
+New-ADOrganizationalUnit          | Path
+New-ADServiceAccount              | Path
+New-ADUser                        | Path
+Remove-ADGroup                    | Identity
+Remove-ADGroupMember              | {Identity, Members}
+Remove-ADOrganizationalUnit       | Identity
+Remove-ADPrincipalGroupMembership | MemberOf
+Restore-ADObject                  | TargetPath
+Search-ADAccount                  | SearchBase
+Set-ADGroup                       | Identity
+Set-ADOrganizationalUnit          | Identity
 
 Quick examples of some argument tab completions for cmdlets in the ActiveDirectory module:
 ```PowerShell
-## tab complete the names of the AD groups that start with 'vCenter_' in the given AD domain, using specified creds
-Get-ADGroup -Server myotherdom -Credential $myCred vCenter_<tab>
+## tab complete the names of the AD groups that start with 'serverOwner_' in the given AD domain, using specified creds
+Get-ADGroup -Server myotherdom -Credential $myCred serverOwner_<tab>
 
 ## display an interactive list of matching AD OUs through which to navigate (arrow keys) to select the desired OU
 Get-ADOrganizationalUnit groups<CTRL+Space>
