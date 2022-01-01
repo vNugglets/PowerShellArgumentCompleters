@@ -19,7 +19,7 @@
 
 .ICONURI https://avatars0.githubusercontent.com/u/22530966
 
-.EXTERNALMODULEDEPENDENCIES
+.EXTERNALMODULEDEPENDENCIES ActiveDirectory 
 
 .REQUIREDSCRIPTS
 
@@ -30,13 +30,14 @@ See ReadMe and other docs at https://github.com/vNugglets/PowerShellArgumentComp
 
 .PRIVATEDATA
 
-#>
+#> 
 
 #Requires -Module ActiveDirectory
 
+
 <#
 
-.DESCRIPTION
+.DESCRIPTION 
 Script to register PowerShell argument completers for many parameters of ActiveDirectory module cmdlets, making us even more productive on the command line. This enables the tab-completion of actual ActiveDirectory objects' and properties' names as values to parameters to ActiveDirectory cmdlets -- neat!
 
 #>

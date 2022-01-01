@@ -12,7 +12,7 @@
 	ReleaseNotes = "See ReadMe and other docs at https://github.com/vNugglets/PowerShellArgumentCompleters"
 	Tags = "vNugglets", "PowerShell", "ArgumentCompleter", "Parameter", "ActiveDirectory", "AD", "AdminOptimization", "NaturalExperience", "TabComplete", "TabCompletion", "Completion", "Awesome"
 	# RequiredModules
-	# ExternalModuleDependencies
+	ExternalModuleDependencies = "ActiveDirectory"
 	# RequiredScripts
 	# ExternalScriptDependencies
 	# PrivateData
