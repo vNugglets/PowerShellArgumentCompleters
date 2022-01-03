@@ -1,7 +1,7 @@
 
 <#PSScriptInfo
 
-.VERSION 1.0.0
+.VERSION 1.0.1
 
 .GUID d7c13ce3-a513-4a05-8093-8e098a7e9557
 
@@ -33,6 +33,7 @@ See ReadMe and other docs at https://github.com/vNugglets/PowerShellArgumentComp
 #> 
 
 #Requires -Module ActiveDirectory
+
 
 
 <#
@@ -145,9 +146,12 @@ process {
         ## if the -Idenity param is in the command line, get the corresponding AD object and return info on its members
         if ($fakeBoundParameter.ContainsKey("Identity")) {
             ## if these other params are specified to the command, pass them through
-            Write-Output Credential Server | Foreach-Object -Begin {$hshParmForGet = @{}} {
+            Write-Output Credential | Foreach-Object -Begin {$hshParmForGet = @{}} {
                 if ($fakeBoundParameter.ContainsKey($_)) {$hshParmForGet[$_] = $fakeBoundParameter.$_}
             }
+            ## if -Server specified, use it for Get-ADObject call; else, use the domain root / global catalog port for server, to account for getting AD objects from cross-domain in the same forest
+            $hshParmForGet["Server"] = if ($fakeBoundParameter.ContainsKey("Server")) {$fakeBoundParameter["Server"]} else {"{0}:3268" -f (Get-ADForest).RootDomain}
+
             $strThisIdentity = $fakeBoundParameter["Identity"]
             $strCmdletToGetThisIdentity, $strMembershipPropertyOfInterest = Switch ($commandName) {
                 "Remove-ADGroupMember" {"Get-ADGroup", "members"; break} ## "members" property name seems case sensitive in at least some AD envs
@@ -156,20 +160,20 @@ process {
             $oThisADObject = & $strCmdletToGetThisIdentity -Properties $strMembershipPropertyOfInterest -Filter "(Name -eq '$strThisIdentity') -or (SamAccountName -eq '$strThisIdentity')" @hshParmForGet
             ## if this AD object has members (for group) or is a member of things (for principal), get them
             if (($oThisADObject.$strMembershipPropertyOfInterest | Measure-Object).Count -gt 0) {
-                $oThisADObject.$strMembershipPropertyOfInterest | Foreach-Object {Get-ADObject @hshParmForGet -Identity $_ -Properties Description, SamAccountName} | Sort-Object -Property Name | Foreach-Object {
-                    $strCompletionText = if ($_.SamAccountName -match "\s") {'"{0}"' -f $_.SamAccountName} else {$_.SamAccountName}
+                $oThisADObject.$strMembershipPropertyOfInterest | Where-Object {$_.Split(",")[0].Split("=")[1] -like "${wordToComplete}*"} | Foreach-Object {Get-ADObject @hshParmForGet -Identity $_ -Properties Description, samaccountname, DisplayName} | Sort-Object -Property Name | Foreach-Object {
+                    $strCompletionText = if ($_.samaccountname -match "\s") {'"{0}"' -f $_.samaccountname} else {$_.samaccountname}
                     New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
                         $strCompletionText,    # CompletionText
-                        $_.SamAccountName,    # ListItemText
+                        $_.samaccountname,    # ListItemText
                         [System.Management.Automation.CompletionResultType]::ParameterValue,    # ResultType
-                        ("[{0}] {1} (description of '{2}')" -f $($_.ObjectClass), $_.DistinguishedName, $_.Description)    # ToolTip
+                        ("[{0}] {1} (DisplayName of '{2}', description of '{3}')" -f $_.ObjectClass, $_.DistinguishedName, $_.DisplayName, $_.Description)    # ToolTip
                     )
                 } ## end Foreach-Object
             }
         }
     } ## end scriptblock
+
     ## for these cmdlets
     Register-ArgumentCompleter -CommandName (Write-Output Remove-ADPrincipalGroupMembership) -ParameterName MemberOf -ScriptBlock $sbGroupMembershipCompleter
     Register-ArgumentCompleter -CommandName (Write-Output Remove-ADGroupMember) -ParameterName Members -ScriptBlock $sbGroupMembershipCompleter
-
 }
