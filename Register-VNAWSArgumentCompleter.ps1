@@ -218,6 +218,13 @@ process {
                 $strPropertyNameOfInterest = "KeyName"
                 $strCmdletForGet = "Get-EC2KeyPair"
                 $arrPropertiesToSelect = Write-Output KeyFingerprint KeyPairId KeyType
+                break
+            }
+            "UserName" {
+                $strPropertyNameOfInterest = "UserName"
+                $strCmdletForGet = "Get-IAMUserList"
+                $arrPropertiesToSelect = Write-Output UserId CreateDate PasswordLastUsed Path PermissionsBoundary Arn
+                break
             }
         }
 
@@ -246,6 +253,12 @@ process {
     Write-Output KeyName | Foreach-Object {
         ## if there are any commands with this parameter name, register an argument completer for them
         if ($arrCommandsWithThisParam = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName $_ -Name Get-EC2KeyPair, New-ASLaunchConfiguration, New-EC2Instance, Remove-EC2KeyPair -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $_ -ScriptBlock $sbMultipleObjCompleter}
+    } ## end Foreach-Object
+
+    ## matching cmdlets with -UserName parameter
+    Write-Output UserName | Foreach-Object {
+        ## if there are any commands with this parameter name, register an argument completer for them
+        if ($arrCommandsWithThisParam = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName $_ -Noun IAM* -ErrorAction:SilentlyContinue | Where-Object {$_.Name -ne "New-IAMUser"}) {Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $_ -ScriptBlock $sbMultipleObjCompleter}
     } ## end Foreach-Object
 
 
