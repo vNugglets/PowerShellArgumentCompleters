@@ -197,6 +197,41 @@ process {
 
 
 
+    ## VPC ID completer
+    $sbVPCIdCompleter = {
+        param($commandName, $parameterName, $wordToComplete, $commandAst, $commandBoundParameter)
+        ## any parameters to pass on through to the Get-* cmdlet (like ProfileName, for example)
+        $hshParamForGet = @{}
+        if ($commandBoundParameter.ContainsKey("ProfileName")) {$hshParamForGet["ProfileName"] = $commandBoundParameter.ProfileName}
+
+        ## the property of returned objects that is of interest
+        $strPropertyNameOfInterest = "VpcId"  ## the property name that corrsponds to the
+        $strCmdletForGet = "Get-EC2Vpc"
+        $arrPropertiesToSelect = Write-Output State  CidrBlock  IsDefault  OwnerId
+
+        & $strCmdletForGet @hshParamForGet | Foreach-Object {if (-not [System.String]::IsNullOrEmpty($wordToComplete)) {if ($_.$strPropertyNameOfInterest -like "${wordToComplete}*") {$_}} else {$_}} | Sort-Object -Property $strPropertyNameOfInterest | Foreach-Object {
+            $strCompletionText = if ($_.$strPropertyNameOfInterest -match "\s") {'"{0}"' -f $_.$strPropertyNameOfInterest} else {$_.$strPropertyNameOfInterest}
+            New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
+                $strCompletionText,    # CompletionText
+                $_.$strPropertyNameOfInterest,    # ListItemText
+                [System.Management.Automation.CompletionResultType]::ParameterValue,    # ResultType
+                ($_ | Select-Object -Property $arrPropertiesToSelect | Format-List | Out-String)    # ToolTip
+            )
+        } ## end Foreach-Object
+    } ## end scriptblock
+
+    ## for all of the cmdlets with these params
+    $arrAllCmdsOfInterest = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName ($arrParamNames = Write-Output EndpointDetails_VpcId, VPC_VPCId, VpcConfig_VpcId, VpcConfiguration_VpcId, VpcId, VPCSettings_VpcId) -ErrorAction:SilentlyContinue
+    $arrParamNames | ForEach-Object {
+        $strThisParamName = $_
+        ## commands with this parameter
+        $arrCommandsWithThisParam = $arrAllCmdsOfInterest.Where({$_.Parameters.ContainsKey($strThisParamName) -or ($_.Parameters.Values.Aliases -contains $strThisParamName)})
+        ## if there are any commands with this param, register the arg completer for them for this param
+        if (($arrCommandsWithThisParam | Measure-Object).Count -gt 0) {Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $strThisParamName -ScriptBlock $sbVPCIdCompleter}
+    } ## end foreach-object
+
+
+
     ## completer scriptblock for -Service
     $sbServiceCompleter = {
         param($commandName, $parameterName, $wordToComplete, $commandAst, $commandBoundParameter)
