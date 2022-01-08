@@ -13,6 +13,9 @@
 - see [Issue #11, Add completers for ActiveDirectory module cmdlets](https://github.com/vNugglets/PowerShellArgumentCompleters/issues/11) and the [ReadMe.md](./ReadMe.md) here for other details
 
 ## Register-VNAWSArgumentCompleter
+### v1.3.0, Jan 2022
+- Speed up registering of AWS completers (feature request in [Issue #16](https://github.com/vNugglets/PowerShellArgumentCompleters/issues/16))
+
 ### v1.2.0, Dec 2021
 - added completer for arguments for parameter `-Service` for cmdlets `Get-AWSCmdletName`, `Get-AWSService` (feature request in [Issue #9](https://github.com/vNugglets/PowerShellArgumentCompleters/issues/9))
 - added completer for arguments for parameter `-ApiOperation` for cmdlet `Get-AWSCmdletName` (feature request in [Issue #9](https://github.com/vNugglets/PowerShellArgumentCompleters/issues/9))
