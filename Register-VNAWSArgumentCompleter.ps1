@@ -138,6 +138,40 @@ process {
 
 
 
+    ## ECR Repository completer
+    $sbECRRepositoryCompleter = {
+        param($commandName, $parameterName, $wordToComplete, $commandAst, $commandBoundParameter)
+        ## any parameters to pass on through to the Get-* cmdlet (like ProfileName, for example)
+        $hshParamForGet = @{}
+        if ($commandBoundParameter.ContainsKey("ProfileName")) {$hshParamForGet["ProfileName"] = $commandBoundParameter.ProfileName}
+
+        ## the property of returned objects that is of interest
+        $strPropertyNameOfInterest = "RepositoryName"  ## the property name that corrsponds to the
+        $strPropertyNameOfInterest_CreationDate = "CreatedAt"  ## the property name that corresponds to when the object was created (not consistent across all objects)
+        ## string to include in tooltip for creation / last modified text
+        $strAddlInfoDescriptor = "CreatedAt"
+        $strCmdletForGet = "Get-ECRRepository"
+
+        & $strCmdletForGet @hshParamForGet | Foreach-Object {if (-not [System.String]::IsNullOrEmpty($wordToComplete)) {if ($_.$strPropertyNameOfInterest -like "${wordToComplete}*") {$_}} else {$_}} | Sort-Object -Property $strPropertyNameOfInterest | Foreach-Object {
+            $strCompletionText = if ($_.$strPropertyNameOfInterest -match "\s") {'"{0}"' -f $_.$strPropertyNameOfInterest} else {$_.$strPropertyNameOfInterest}
+            New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
+                $strCompletionText,    # CompletionText
+                $_.$strPropertyNameOfInterest,    # ListItemText
+                [System.Management.Automation.CompletionResultType]::ParameterValue,    # ResultType
+                ([PSCustomObject][Ordered]@{RepositoryUri = $_.RepositoryUri; $strAddlInfoDescriptor = $_.$strPropertyNameOfInterest_CreationDate} | Format-List | Out-String)    # ToolTip
+            )
+        } ## end Foreach-Object
+    } ## end scriptblock
+
+    Write-Output RepositoryName | Foreach-Object {
+        ## if there are any commands with this parameter name, register an argument completer for them
+        if ($arrCommandsWithThisParam = Get-Command -ParameterName $_ -Noun ECR* -Module AWSPowerShell*, AWS.Tools.* -ErrorAction:SilentlyContinue) {
+            Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $_ -ScriptBlock $sbECRRepositoryCompleter
+        } ## end if
+    } ## end Foreach-Object
+
+
+
     ## completer scriptblock for -Service
     $sbServiceCompleter = {
         param($commandName, $parameterName, $wordToComplete, $commandAst, $commandBoundParameter)
