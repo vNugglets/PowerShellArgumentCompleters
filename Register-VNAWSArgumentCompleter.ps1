@@ -197,17 +197,29 @@ process {
 
 
 
-    ## VPC ID completer
-    $sbVPCIdCompleter = {
+    ## Completer for things like VPCId, EC2 KeyName
+    $sbMultipleObjCompleter = {
         param($commandName, $parameterName, $wordToComplete, $commandAst, $commandBoundParameter)
         ## any parameters to pass on through to the Get-* cmdlet (like ProfileName, for example)
         $hshParamForGet = @{}
         if ($commandBoundParameter.ContainsKey("ProfileName")) {$hshParamForGet["ProfileName"] = $commandBoundParameter.ProfileName}
 
-        ## the property of returned objects that is of interest
-        $strPropertyNameOfInterest = "VpcId"  ## the property name that corrsponds to the
-        $strCmdletForGet = "Get-EC2Vpc"
-        $arrPropertiesToSelect = Write-Output State  CidrBlock  IsDefault  OwnerId
+        ## strPropertyNameOfInterest:  property of returned objects that is of interest
+        ## strCmdletForGet:  name of cmdlet to use to _get_ the objects to use for completing argument
+        ## arrPropertiesToSelect:  the properties to select for the ToolTip output (can be calculated properties)
+        switch ($parameterName) {
+            {$_ -match "VpcId"} {
+                $strPropertyNameOfInterest = "VpcId"
+                $strCmdletForGet = "Get-EC2Vpc"
+                $arrPropertiesToSelect = Write-Output State CidrBlock IsDefault OwnerId
+                break
+            }
+            "KeyName" {
+                $strPropertyNameOfInterest = "KeyName"
+                $strCmdletForGet = "Get-EC2KeyPair"
+                $arrPropertiesToSelect = Write-Output KeyFingerprint KeyPairId KeyType
+            }
+        }
 
         & $strCmdletForGet @hshParamForGet | Foreach-Object {if (-not [System.String]::IsNullOrEmpty($wordToComplete)) {if ($_.$strPropertyNameOfInterest -like "${wordToComplete}*") {$_}} else {$_}} | Sort-Object -Property $strPropertyNameOfInterest | Foreach-Object {
             $strCompletionText = if ($_.$strPropertyNameOfInterest -match "\s") {'"{0}"' -f $_.$strPropertyNameOfInterest} else {$_.$strPropertyNameOfInterest}
@@ -227,8 +239,14 @@ process {
         ## commands with this parameter
         $arrCommandsWithThisParam = $arrAllCmdsOfInterest.Where({$_.Parameters.ContainsKey($strThisParamName) -or ($_.Parameters.Values.Aliases -contains $strThisParamName)})
         ## if there are any commands with this param, register the arg completer for them for this param
-        if (($arrCommandsWithThisParam | Measure-Object).Count -gt 0) {Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $strThisParamName -ScriptBlock $sbVPCIdCompleter}
+        if (($arrCommandsWithThisParam | Measure-Object).Count -gt 0) {Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $strThisParamName -ScriptBlock $sbMultipleObjCompleter}
     } ## end foreach-object
+
+    ## specific cmdlets with -KeyName parameter
+    Write-Output KeyName | Foreach-Object {
+        ## if there are any commands with this parameter name, register an argument completer for them
+        if ($arrCommandsWithThisParam = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName $_ -Name Get-EC2KeyPair, New-ASLaunchConfiguration, New-EC2Instance, Remove-EC2KeyPair -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $_ -ScriptBlock $sbMultipleObjCompleter}
+    } ## end Foreach-Object
 
 
 
