@@ -65,8 +65,8 @@ process {
         ## string to include in tooltip for creation / last modified text
         $strAddlInfoDescriptor = "created"
         $strCmdletForGet = Switch ($parameterName) {
-        	"AutoScalingGroupName" {"Get-ASAutoScalingGroup"; $strPropertyNameOfInterest_CreationDate = "CreatedTime"}
-        	"BucketName" {"Get-S3Bucket"}
+            "AutoScalingGroupName" {"Get-ASAutoScalingGroup"; $strPropertyNameOfInterest_CreationDate = "CreatedTime"}
+            "BucketName" {"Get-S3Bucket"}
             "FunctionName" {"Get-LMFunctionList"}
             "LaunchConfigurationName" {"Get-ASLaunchConfiguration"; $strPropertyNameOfInterest_CreationDate = "CreatedTime"}
             {"LogGroupName", "LogGroupNamePrefix" -contains $_} {"Get-CWLLogGroup"; $strPropertyNameOfInterest = "LogGroupName"; $strPropertyNameOfInterest_CreationDate = "CreationTime"}
@@ -81,7 +81,7 @@ process {
                     default {$commandName}
                 } ## end inner switch
             } ## end case
-        	"RoleName" {"Get-IAMRoleList"; $strPropertyNameOfInterest_CreationDate = "CreateDate"}
+            "RoleName" {"Get-IAMRoleList"; $strPropertyNameOfInterest_CreationDate = "CreateDate"}
             "StackName" {"Get-CFNStack"; $strPropertyNameOfInterest_CreationDate = "CreationTime"}
         }
         & $strCmdletForGet @hshParamForGet | Foreach-Object {if (-not [System.String]::IsNullOrEmpty($wordToComplete)) {if ($_.$strPropertyNameOfInterest -like "${wordToComplete}*") {$_}} else {$_}} | Sort-Object -Property $strPropertyNameOfInterest | Foreach-Object {
@@ -94,10 +94,15 @@ process {
         } ## end Foreach-Object
     } ## end scriptblock
 
-    Write-Output AutoScalingGroupName, BucketName, FunctionName, LaunchConfigurationName, LogGroupName, LogGroupNamePrefix, RoleName, StackName | Foreach-Object {
-        ## if there are any commands with this parameter name, register an argument completer for them
-        if ($arrCommandsWithThisParam = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName $_ -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $_ -ScriptBlock $sbObjectNameCompleter}
-    } ## end Foreach-Object
+    ## for all of the cmdlets with these params
+    $arrAllCmdsOfInterest = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName ($arrParamNames = Write-Output AutoScalingGroupName, BucketName, FunctionName, LaunchConfigurationName, LogGroupName, LogGroupNamePrefix, RoleName, StackName) -ErrorAction:SilentlyContinue
+    $arrParamNames | ForEach-Object {
+        $strThisParamName = $_
+        ## commands with this parameter
+        $arrCommandsWithThisParam = $arrAllCmdsOfInterest.Where({$_.Parameters.ContainsKey($strThisParamName) -or ($_.Parameters.Values.Aliases -contains $strThisParamName)})
+        ## if there are any commands with this param, register the arg completer for them for this param
+        if (($arrCommandsWithThisParam | Measure-Object).Count -gt 0) {Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $strThisParamName -ScriptBlock $sbObjectNameCompleter}
+    } ## end foreach-object
 
     ## specific cmdlets with -Name parameter
     Write-Output Get-ELB2LoadBalancer, Get-ELB2TargetGroup, Get-SSMDocument, Get-SSMParameter, Get-SSMParameterHistory | Foreach-Object {
