@@ -208,6 +208,12 @@ process {
         ## strCmdletForGet:  name of cmdlet to use to _get_ the objects to use for completing argument
         ## arrPropertiesToSelect:  the properties to select for the ToolTip output (can be calculated properties)
         switch ($parameterName) {
+            "EventBusName" {
+                $strPropertyNameOfInterest = "Name"
+                $strCmdletForGet = "Get-EVBEventBusList"
+                $arrPropertiesToSelect = Write-Output Arn
+                break
+            }
             "KeyName" {
                 $strPropertyNameOfInterest = "KeyName"
                 $strCmdletForGet = "Get-EC2KeyPair"
@@ -252,7 +258,7 @@ process {
     } ## end scriptblock
 
     ## for all of the cmdlets with parameter names like these param name wildcard strings
-    $arrAllCmdsOfInterest = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName ($arrParamNames = Write-Output EndpointDetails_VpcId, VPC_VPCId, VpcConfig_VpcId, VpcConfiguration_VpcId, VpcId, VPCSettings_VpcId, *SubnetId*) -ErrorAction:SilentlyContinue
+    $arrAllCmdsOfInterest = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName ($arrParamNames = Write-Output EndpointDetails_VpcId, VPC_VPCId, VpcConfig_VpcId, VpcConfiguration_VpcId, VpcId, VPCSettings_VpcId, EventBusName, *SubnetId*) -ErrorAction:SilentlyContinue
     ## for each full parameter name from all the interesting cmdlets' params that are like the param wildcard from the param name array, register arg completer
     (($arrAllCmdsOfInterest.Parameters.Keys | Group-Object -NoElement).Name.Where({$strThisParamName = $_; $arrParamNames.Where({$strThisParamName -like $_})}) | Group-Object -NoElement).Name | ForEach-Object {
         $strThisParamName = $_
