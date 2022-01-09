@@ -220,6 +220,12 @@ process {
                 $arrPropertiesToSelect = Write-Output PolicyName DefaultVersionId UpdateDate AttachmentCount Description
                 break
             }
+            {$_ -match "SubnetId"} {
+                $strPropertyNameOfInterest = "SubnetId"
+                $strCmdletForGet = "Get-EC2Subnet"
+                $arrPropertiesToSelect = Write-Output AvailabilityZone CidrBlock Ipv6Native MapCustomerOwnedIpOnLaunch MapPublicIpOnLaunch State VpcId
+                break
+            }
             {$_ -match "VpcId"} {
                 $strPropertyNameOfInterest = "VpcId"
                 $strCmdletForGet = "Get-EC2Vpc"
@@ -245,9 +251,10 @@ process {
         } ## end Foreach-Object
     } ## end scriptblock
 
-    ## for all of the cmdlets with these params
-    $arrAllCmdsOfInterest = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName ($arrParamNames = Write-Output EndpointDetails_VpcId, VPC_VPCId, VpcConfig_VpcId, VpcConfiguration_VpcId, VpcId, VPCSettings_VpcId) -ErrorAction:SilentlyContinue
-    $arrParamNames | ForEach-Object {
+    ## for all of the cmdlets with parameter names like these param name wildcard strings
+    $arrAllCmdsOfInterest = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName ($arrParamNames = Write-Output EndpointDetails_VpcId, VPC_VPCId, VpcConfig_VpcId, VpcConfiguration_VpcId, VpcId, VPCSettings_VpcId, *SubnetId*) -ErrorAction:SilentlyContinue
+    ## for each full parameter name from all the interesting cmdlets' params that are like the param wildcard from the param name array, register arg completer
+    (($arrAllCmdsOfInterest.Parameters.Keys | Group-Object -NoElement).Name.Where({$strThisParamName = $_; $arrParamNames.Where({$strThisParamName -like $_})}) | Group-Object -NoElement).Name | ForEach-Object {
         $strThisParamName = $_
         ## commands with this parameter
         $arrCommandsWithThisParam = $arrAllCmdsOfInterest.Where({$_.Parameters.ContainsKey($strThisParamName) -or ($_.Parameters.Values.Aliases -contains $strThisParamName)})
