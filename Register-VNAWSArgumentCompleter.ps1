@@ -208,16 +208,22 @@ process {
         ## strCmdletForGet:  name of cmdlet to use to _get_ the objects to use for completing argument
         ## arrPropertiesToSelect:  the properties to select for the ToolTip output (can be calculated properties)
         switch ($parameterName) {
-            {$_ -match "VpcId"} {
-                $strPropertyNameOfInterest = "VpcId"
-                $strCmdletForGet = "Get-EC2Vpc"
-                $arrPropertiesToSelect = Write-Output State CidrBlock IsDefault OwnerId
-                break
-            }
             "KeyName" {
                 $strPropertyNameOfInterest = "KeyName"
                 $strCmdletForGet = "Get-EC2KeyPair"
                 $arrPropertiesToSelect = Write-Output KeyFingerprint KeyPairId KeyType
+                break
+            }
+            "PolicyArn" {
+                $strPropertyNameOfInterest = "Arn"
+                $strCmdletForGet = "Get-IAMPolicyList"
+                $arrPropertiesToSelect = Write-Output PolicyName DefaultVersionId UpdateDate AttachmentCount Description
+                break
+            }
+            {$_ -match "VpcId"} {
+                $strPropertyNameOfInterest = "VpcId"
+                $strCmdletForGet = "Get-EC2Vpc"
+                $arrPropertiesToSelect = Write-Output State CidrBlock IsDefault OwnerId
                 break
             }
             "UserName" {
@@ -255,8 +261,8 @@ process {
         if ($arrCommandsWithThisParam = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName $_ -Name Get-EC2KeyPair, New-ASLaunchConfiguration, New-EC2Instance, Remove-EC2KeyPair -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $_ -ScriptBlock $sbMultipleObjCompleter}
     } ## end Foreach-Object
 
-    ## matching cmdlets with -UserName parameter
-    Write-Output UserName | Foreach-Object {
+    ## matching cmdlets with -UserName, -PolicyArn parameter
+    Write-Output UserName, PolicyArn | Foreach-Object {
         ## if there are any commands with this parameter name, register an argument completer for them
         if ($arrCommandsWithThisParam = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName $_ -Noun IAM* -ErrorAction:SilentlyContinue | Where-Object {$_.Name -ne "New-IAMUser"}) {Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $_ -ScriptBlock $sbMultipleObjCompleter}
     } ## end Foreach-Object
