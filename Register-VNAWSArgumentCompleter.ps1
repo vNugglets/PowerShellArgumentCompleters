@@ -197,7 +197,7 @@ process {
 
 
 
-    ## Completer for things like VPCId, EC2 KeyName
+    ## Completer for things like VPCId, EC2 KeyName, lots more
     $sbMultipleObjCompleter = {
         param($commandName, $parameterName, $wordToComplete, $commandAst, $commandBoundParameter)
         ## any parameters to pass on through to the Get-* cmdlet (like ProfileName, for example)
@@ -278,6 +278,38 @@ process {
     Write-Output UserName, PolicyArn | Foreach-Object {
         ## if there are any commands with this parameter name, register an argument completer for them
         if ($arrCommandsWithThisParam = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName $_ -Noun IAM* -ErrorAction:SilentlyContinue | Where-Object {$_.Name -ne "New-IAMUser"}) {Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $_ -ScriptBlock $sbMultipleObjCompleter}
+    } ## end Foreach-Object
+
+
+
+    ## Completer for things for which to have no toolTip (say, due to lack of interesting other properties to display)
+    $sbObjCompleter_NoToolTip = {
+        param($commandName, $parameterName, $wordToComplete, $commandAst, $commandBoundParameter)
+        ## any parameters to pass on through to the Get-* cmdlet (like ProfileName, for example)
+        $hshParamForGet = @{}
+        if ($commandBoundParameter.ContainsKey("ProfileName")) {$hshParamForGet["ProfileName"] = $commandBoundParameter.ProfileName}
+
+        ## strPropertyNameOfInterest:  property of returned objects that is of interest
+        $strPropertyNameOfInterest = $parameterName  ## default here
+        ## strCmdletForGet:  name of cmdlet to use to _get_ the objects to use for completing argument
+        switch ($parameterName) {
+            {$_ -in "MetricName", "NameSpace"} {
+                $strCmdletForGet = "Get-CWMetricList"
+                if ($commandBoundParameter.ContainsKey("Namespace")) {$hshParamForGet["NameSpace"] = $commandBoundParameter["NameSpace"]}
+                break
+            } ## end case
+        } ## end switch
+
+        & $strCmdletForGet @hshParamForGet | Foreach-Object {if (-not [System.String]::IsNullOrEmpty($wordToComplete)) {if ($_.$strPropertyNameOfInterest -like "${wordToComplete}*") {$_}} else {$_}} | Sort-Object -Property $strPropertyNameOfInterest | Foreach-Object {
+            $strCompletionText = if ($_.$strPropertyNameOfInterest -match "\s") {'"{0}"' -f $_.$strPropertyNameOfInterest} else {$_.$strPropertyNameOfInterest}
+            New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList ($strCompletionText <# CompletionText #>)
+        } ## end Foreach-Object
+    } ## end scriptblock
+
+    ## matching cmdlets with -MetricName, -NameSpace parameters
+    Write-Output MetricName, NameSpace | Foreach-Object {
+        ## if there are any commands with this parameter name, register an argument completer for them
+        if ($arrCommandsWithThisParam = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName $_ -Noun CW* -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $_ -ScriptBlock $sbObjCompleter_NoToolTip}
     } ## end Foreach-Object
 
 
