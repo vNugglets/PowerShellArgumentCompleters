@@ -232,6 +232,12 @@ process {
                 $arrPropertiesToSelect = Write-Output AvailabilityZone CidrBlock Ipv6Native MapCustomerOwnedIpOnLaunch MapPublicIpOnLaunch State VpcId
                 break
             }
+            "VaultName" {
+                $strPropertyNameOfInterest = "VaultName"
+                $strCmdletForGet = "Get-GLCVaultList"
+                $arrPropertiesToSelect = Write-Output CreationDate LastInventoryDate NumberOfArchives SizeInBytes
+                break
+            }
             {$_ -match "VpcId"} {
                 $strPropertyNameOfInterest = "VpcId"
                 $strCmdletForGet = "Get-EC2Vpc"
@@ -258,7 +264,7 @@ process {
     } ## end scriptblock
 
     ## for all of the cmdlets with parameter names like these param name wildcard strings
-    $arrAllCmdsOfInterest = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName ($arrParamNames = Write-Output EndpointDetails_VpcId, VPC_VPCId, VpcConfig_VpcId, VpcConfiguration_VpcId, VpcId, VPCSettings_VpcId, EventBusName, *SubnetId*) -ErrorAction:SilentlyContinue
+    $arrAllCmdsOfInterest = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName ($arrParamNames = Write-Output EndpointDetails_VpcId, VPC_VPCId, VpcConfig_VpcId, VpcConfiguration_VpcId, VpcId, VPCSettings_VpcId, EventBusName, *SubnetId*, VaultName) -ErrorAction:SilentlyContinue
     ## for each full parameter name from all the interesting cmdlets' params that are like the param wildcard from the param name array, register arg completer
     (($arrAllCmdsOfInterest.Parameters.Keys | Group-Object -NoElement).Name.Where({$strThisParamName = $_; $arrParamNames.Where({$strThisParamName -like $_})}) | Group-Object -NoElement).Name | ForEach-Object {
         $strThisParamName = $_
