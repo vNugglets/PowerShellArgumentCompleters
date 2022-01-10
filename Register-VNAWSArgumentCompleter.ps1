@@ -206,8 +206,15 @@ process {
 
         ## strPropertyNameOfInterest:  property of returned objects that is of interest
         ## strCmdletForGet:  name of cmdlet to use to _get_ the objects to use for completing argument
+        ##   or sbToGetDesiredObjects: script block for geting said objects (useful if the "getting" is more than just a cmdlet)
         ## arrPropertiesToSelect:  the properties to select for the ToolTip output (can be calculated properties)
         switch ($parameterName) {
+            "Cluster" {
+                $strPropertyNameOfInterest = "ClusterName"
+                $sbToGetDesiredObjects = {(Get-ECSClusterList | Get-ECSClusterDetail).Clusters}
+                $arrPropertiesToSelect = Write-Output ActiveServicesCount Attachments CapacityProviders RegisteredContainerInstancesCount RunningTasksCount Status
+                break
+            }
             "EventBusName" {
                 $strPropertyNameOfInterest = "Name"
                 $strCmdletForGet = "Get-EVBEventBusList"
@@ -252,7 +259,7 @@ process {
             }
         }
 
-        & $strCmdletForGet @hshParamForGet | Foreach-Object {if (-not [System.String]::IsNullOrEmpty($wordToComplete)) {if ($_.$strPropertyNameOfInterest -like "${wordToComplete}*") {$_}} else {$_}} | Sort-Object -Property $strPropertyNameOfInterest | Foreach-Object {
+        $(if ($null -ne $sbToGetDesiredObjects) {& $sbToGetDesiredObjects} else {& $strCmdletForGet @hshParamForGet}) | Foreach-Object {if (-not [System.String]::IsNullOrEmpty($wordToComplete)) {if ($_.$strPropertyNameOfInterest -like "${wordToComplete}*") {$_}} else {$_}} | Sort-Object -Property $strPropertyNameOfInterest | Foreach-Object {
             $strCompletionText = if ($_.$strPropertyNameOfInterest -match "\s") {'"{0}"' -f $_.$strPropertyNameOfInterest} else {$_.$strPropertyNameOfInterest}
             New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
                 $strCompletionText,    # CompletionText
@@ -264,7 +271,7 @@ process {
     } ## end scriptblock
 
     ## for all of the cmdlets with parameter names like these param name wildcard strings
-    $arrAllCmdsOfInterest = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName ($arrParamNames = Write-Output EndpointDetails_VpcId, VPC_VPCId, VpcConfig_VpcId, VpcConfiguration_VpcId, VpcId, VPCSettings_VpcId, EventBusName, *SubnetId*, VaultName) -ErrorAction:SilentlyContinue
+    $arrAllCmdsOfInterest = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName ($arrParamNames = Write-Output EndpointDetails_VpcId, VPC_VPCId, VpcConfig_VpcId, VpcConfiguration_VpcId, VpcId, VPCSettings_VpcId, Cluster, EventBusName, *SubnetId*, VaultName) -ErrorAction:SilentlyContinue
     ## for each full parameter name from all the interesting cmdlets' params that are like the param wildcard from the param name array, register arg completer
     (($arrAllCmdsOfInterest.Parameters.Keys | Group-Object -NoElement).Name.Where({$strThisParamName = $_; $arrParamNames.Where({$strThisParamName -like $_})}) | Group-Object -NoElement).Name | ForEach-Object {
         $strThisParamName = $_
