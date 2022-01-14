@@ -211,7 +211,7 @@ process {
         switch ($parameterName) {
             "Cluster" {
                 $strPropertyNameOfInterest = "ClusterName"
-                $sbToGetDesiredObjects = {(Get-ECSClusterList | Get-ECSClusterDetail).Clusters}
+                $sbToGetDesiredObjects = {(Get-ECSClusterList @hshParamForGet | Get-ECSClusterDetail @hshParamForGet).Clusters}
                 $arrPropertiesToSelect = Write-Output ActiveServicesCount Attachments CapacityProviders RegisteredContainerInstancesCount RunningTasksCount Status
                 break
             }
@@ -292,6 +292,51 @@ process {
         ## if there are any commands with this parameter name, register an argument completer for them
         if ($arrCommandsWithThisParam = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName $_ -Noun IAM* -ErrorAction:SilentlyContinue | Where-Object {$_.Name -ne "New-IAMUser"}) {Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $_ -ScriptBlock $sbMultipleObjCompleter}
     } ## end Foreach-Object
+
+
+
+
+    ## Completer for EC2 Security Group things
+    $sbSecurityGroupCompleter = {
+        param($commandName, $parameterName, $wordToComplete, $commandAst, $commandBoundParameter)
+        ## any parameters to pass on through to the Get-* cmdlet (like ProfileName, for example)
+        $hshParamForGet = @{}
+        if ($commandBoundParameter.ContainsKey("ProfileName")) {$hshParamForGet["ProfileName"] = $commandBoundParameter.ProfileName}
+
+        ## strPropertyNameOfInterest:  property of returned objects that is of interest for giving as tab-completed value
+        ## arrPropertyNamesToWhichToCompare:  propert(ies) of returned objects that is of interest for determining which objects "match" the wordToCompleter
+        ## strCmdletForGet:  name of cmdlet to use to _get_ the objects to use for completing argument
+        ## arrPropertiesToSelect:  the properties to select for the ToolTip output (can be calculated properties)
+        $strPropertyNameOfInterest = "GroupId"
+        $arrPropertyNamesToWhichToCompare = Write-Output GroupId GroupName
+        $strCmdletForGet = "Get-EC2SecurityGroup"
+        $arrPropertiesToSelect = Write-Output GroupName Description IpPermissions Tags
+
+        & $strCmdletForGet @hshParamForGet | Foreach-Object {
+            $oThisRetrievedObj = $_
+            if (-not [System.String]::IsNullOrEmpty($wordToComplete)) {
+                ## if this retrieved object has a property of interest whose value is liek this wordToComplete, return it
+                if ($true -in ($arrPropertyNamesToWhichToCompare | Foreach-Object {$oThisRetrievedObj.$_ -like "${wordToComplete}*"})) {$oThisRetrievedObj}
+            }
+            ## else, no wordToComplete, so return it
+            else {$oThisRetrievedObj}
+        } | Sort-Object -Property $strPropertyNameOfInterest | Foreach-Object {
+            $strCompletionText = if ($_.$strPropertyNameOfInterest -match "\s") {'"{0}"' -f $_.$strPropertyNameOfInterest} else {$_.$strPropertyNameOfInterest}
+            New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
+                $strCompletionText,    # CompletionText
+                $_.$strPropertyNameOfInterest,    # ListItemText
+                [System.Management.Automation.CompletionResultType]::ParameterValue,    # ResultType
+                ($_ | Select-Object -Property $arrPropertiesToSelect | Format-List | Out-String)    # ToolTip
+            )
+        } ## end Foreach-Object
+    } ## end scriptblock
+
+    ## specific cmdlets with -GroupId parameter
+    Write-Output GroupId | Foreach-Object {
+        ## if there are any commands with this parameter name, register an argument completer for them
+        if ($arrCommandsWithThisParam = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName $_ -Noun EC2* -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $_ -ScriptBlock $sbSecurityGroupCompleter}
+    } ## end Foreach-Object
+
 
 
 
