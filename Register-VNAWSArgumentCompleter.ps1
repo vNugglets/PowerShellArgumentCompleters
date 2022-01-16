@@ -221,6 +221,23 @@ process {
                 $arrPropertiesToSelect = Write-Output Arn
                 break
             }
+            "FileSystemId" {
+                ## the noun prefix for the invoking command, so as to know what Get- cmdlet to use
+                $strNounPrefixFromInvokingCmdlet = (($commandName.Split("-")[1]).ToCharArray() | Select-Object -First 3) -join ""
+                $strPropertyNameOfInterest = "FileSystemId"
+                Switch ($strNounPrefixFromInvokingCmdlet) {
+                    "EFS" {
+                        $strCmdletForGet = "Get-EFSFileSystem"
+                        $arrPropertiesToSelect = Write-Output Name Encrypted LifeCycleState NumberOfMountTargets @{n="SizeGB"; e={$_.SizeInBytes.Value / 1GB}}
+                        break
+                    }
+                    "FSX" {
+                        $strCmdletForGet = "Get-FSXFileSystem"
+                        $arrPropertiesToSelect = Write-Output FileSystemType Lifecycle @{n="StorageCapacityGB"; e={$_.StorageCapacity}} StorageType
+                        break
+                    }
+                } ## end switch
+            }
             "KeyName" {
                 $strPropertyNameOfInterest = "KeyName"
                 $strCmdletForGet = "Get-EC2KeyPair"
@@ -271,7 +288,7 @@ process {
     } ## end scriptblock
 
     ## for all of the cmdlets with parameter names like these param name wildcard strings
-    $arrAllCmdsOfInterest = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName ($arrParamNames = Write-Output EndpointDetails_VpcId, VPC_VPCId, VpcConfig_VpcId, VpcConfiguration_VpcId, VpcId, VPCSettings_VpcId, Cluster, EventBusName, *SubnetId*, VaultName) -ErrorAction:SilentlyContinue
+    $arrAllCmdsOfInterest = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName ($arrParamNames = Write-Output EndpointDetails_VpcId, VPC_VPCId, VpcConfig_VpcId, VpcConfiguration_VpcId, VpcId, VPCSettings_VpcId, Cluster, EventBusName, *SubnetId*, VaultName, FileSystemId) -ErrorAction:SilentlyContinue
     ## for each full parameter name from all the interesting cmdlets' params that are like the param wildcard from the param name array, register arg completer
     (($arrAllCmdsOfInterest.Parameters.Keys | Group-Object -NoElement).Name.Where({$strThisParamName = $_; $arrParamNames.Where({$strThisParamName -like $_})}) | Group-Object -NoElement).Name | ForEach-Object {
         $strThisParamName = $_
