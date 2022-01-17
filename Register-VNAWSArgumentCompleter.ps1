@@ -354,6 +354,17 @@ process {
         if ($arrCommandsWithThisParam = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName $_ -Noun EC2* -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $_ -ScriptBlock $sbSecurityGroupCompleter}
     } ## end Foreach-Object
 
+    ## for all of the cmdlets with parameter names like these param name wildcard strings; adds ~150 completer registrations, but adds 10-20% "register args" time; worth having? Disabled for now
+    # $arrAllCmdsOfInterest = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName ($arrParamNames = Write-Output AddSecurityGroupId, AmazonopensearchserviceDestinationConfiguration_VpcConfiguration_SecurityGroupIds, AwsvpcConfiguration_SecurityGroup, Ec2SecurityGroupId, EndpointDetails_SecurityGroupId, EngineSecurityGroupId, ExecutionEngine_MasterInstanceSecurityGroupId, InputSecurityGroup, InputSecurityGroupId, Instances_AdditionalMasterSecurityGroup, Instances_AdditionalSlaveSecurityGroup, Instances_EmrManagedMasterSecurityGroup, Instances_EmrManagedSlaveSecurityGroup, Instances_ServiceAccessSecurityGroup, LaunchSpecification_AllSecurityGroup, LaunchSpecification_SecurityGroupId, MetricSource_RDSSourceConfig_VpcConfiguration_SecurityGroupIdList, MetricSource_RedshiftSourceConfig_VpcConfiguration_SecurityGroupIdList, NetworkConfiguration_SecurityGroupId, NotebookInstanceSecurityGroupId, RemoveSecurityGroupId, SecurityGroup, SecurityGroupId, SecurityGroupRuleId, Vpc_SecurityGroupId, VpcConfig_SecurityGroupId, VpcConfiguration_SecurityGroup, VpcConfiguration_SecurityGroupId, VPCOptions_SecurityGroupId, VpcSecurityGroupId) -ErrorAction:SilentlyContinue
+    # ## for each full parameter name from all the interesting cmdlets' params that are like the param wildcard from the param name array, register arg completer
+    # (($arrAllCmdsOfInterest.Parameters.Keys | Group-Object -NoElement).Name.Where({$strThisParamName = $_; $arrParamNames.Where({$strThisParamName -like $_})}) | Group-Object -NoElement).Name.ForEach({
+    #     $strThisParamName = $_
+    #     ## commands with this parameter
+    #     $arrCommandsWithThisParam = $arrAllCmdsOfInterest.Where({$_.Parameters.ContainsKey($strThisParamName) -or ($_.Parameters.Values.Aliases -contains $strThisParamName)})
+    #     ## if there are any commands with this param, register the arg completer for them for this param
+    #     if (($arrCommandsWithThisParam | Measure-Object).Count -gt 0) {Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $strThisParamName -ScriptBlock $sbSecurityGroupCompleter}
+    # }) ## end foreach method
+
 
 
 
