@@ -238,6 +238,11 @@ process {
                     }
                 } ## end switch
             }
+            "GroupName" {
+                $strPropertyNameOfInterest = "GroupName"
+                $strCmdletForGet = "Get-IAMGroupList"
+                $arrPropertiesToSelect = Write-Output Arn CreateDate GroupId
+            }
             "KeyName" {
                 $strPropertyNameOfInterest = "KeyName"
                 $strCmdletForGet = "Get-EC2KeyPair"
@@ -304,11 +309,16 @@ process {
         if ($arrCommandsWithThisParam = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName $_ -Name Get-EC2KeyPair, New-ASLaunchConfiguration, New-EC2Instance, Remove-EC2KeyPair -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $_ -ScriptBlock $sbMultipleObjCompleter}
     } ## end Foreach-Object
 
-    ## matching cmdlets with -UserName, -PolicyArn parameter
-    Write-Output UserName, PolicyArn | Foreach-Object {
-        ## if there are any commands with this parameter name, register an argument completer for them
-        if ($arrCommandsWithThisParam = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName $_ -Noun IAM* -ErrorAction:SilentlyContinue | Where-Object {$_.Name -ne "New-IAMUser"}) {Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $_ -ScriptBlock $sbMultipleObjCompleter}
-    } ## end Foreach-Object
+    ## for all of the IAM cmdlets with parameter names like these param name wildcard strings
+    $arrAllCmdsOfInterest = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName ($arrParamNames = Write-Output UserName, PolicyArn, GroupName) -ErrorAction:SilentlyContinue -Noun IAM*
+    ## for each full parameter name from all the interesting cmdlets' params that are like the param wildcard from the param name array, register arg completer
+    (($arrAllCmdsOfInterest.Parameters.Keys | Group-Object -NoElement).Name.Where({$strThisParamName = $_; $arrParamNames.Where({$strThisParamName -like $_})}) | Group-Object -NoElement).Name | ForEach-Object {
+        $strThisParamName = $_
+        ## commands with this parameter
+        $arrCommandsWithThisParam = $arrAllCmdsOfInterest.Where({$_.Parameters.ContainsKey($strThisParamName) -or ($_.Parameters.Values.Aliases -contains $strThisParamName)})
+        ## if there are any commands with this param, register the arg completer for them for this param
+        if (($arrCommandsWithThisParam | Measure-Object).Count -gt 0) {Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $strThisParamName -ScriptBlock $sbMultipleObjCompleter}
+    } ## end foreach-object
 
 
 
