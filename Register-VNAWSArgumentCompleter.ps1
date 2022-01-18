@@ -209,6 +209,12 @@ process {
         ##   or sbToGetDesiredObjects: script block for geting said objects (useful if the "getting" is more than just a cmdlet)
         ## arrPropertiesToSelect:  the properties to select for the ToolTip output (can be calculated properties)
         switch ($parameterName) {
+            "AssociationId" {
+                $strPropertyNameOfInterest = "AssociationId"
+                $strCmdletForGet = "Get-SSMAssociationList"
+                $arrPropertiesToSelect = Write-Output AssociationName AssociationVersion LastExecutionDate @{n="DocumentName"; e={$_.Name}} ScheduleExpression
+                break
+            }
             "Cluster" {
                 $strPropertyNameOfInterest = "ClusterName"
                 $sbToGetDesiredObjects = {(Get-ECSClusterList @hshParamForGet | Get-ECSClusterDetail @hshParamForGet).Clusters}
@@ -307,6 +313,12 @@ process {
     Write-Output KeyName | Foreach-Object {
         ## if there are any commands with this parameter name, register an argument completer for them
         if ($arrCommandsWithThisParam = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName $_ -Name Get-EC2KeyPair, New-ASLaunchConfiguration, New-EC2Instance, Remove-EC2KeyPair -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $_ -ScriptBlock $sbMultipleObjCompleter}
+    } ## end Foreach-Object
+
+    ## SSM cmdlets with -AssociationId parameter
+    Write-Output AssociationId | Foreach-Object {
+        ## if there are any commands with this parameter name, register an argument completer for them
+        if ($arrCommandsWithThisParam = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName $_ -Noun SSM* -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $_ -ScriptBlock $sbMultipleObjCompleter}
     } ## end Foreach-Object
 
     ## for all of the IAM cmdlets with parameter names like these param name wildcard strings
