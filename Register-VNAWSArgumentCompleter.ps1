@@ -221,6 +221,12 @@ process {
                 $arrPropertiesToSelect = Write-Output ActiveServicesCount Attachments CapacityProviders RegisteredContainerInstancesCount RunningTasksCount Status
                 break
             }
+            "DBInstanceIdentifier" {
+                $strPropertyNameOfInterest = "DBInstanceIdentifier"
+                $strCmdletForGet = "Get-RDSDBInstance"
+                $arrPropertiesToSelect = Write-Output DBName @{n="AllocatedStorageGB"; e={$_.AllocatedStorage}} AvailabilityZone DBClusterIdentifier DBInstanceClass DBInstanceStatus Engine EngineVersion StorageEncrypted StorageType
+                break
+            }
             "EventBusName" {
                 $strPropertyNameOfInterest = "Name"
                 $strCmdletForGet = "Get-EVBEventBusList"
@@ -319,6 +325,12 @@ process {
     Write-Output AssociationId | Foreach-Object {
         ## if there are any commands with this parameter name, register an argument completer for them
         if ($arrCommandsWithThisParam = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName $_ -Noun SSM* -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $_ -ScriptBlock $sbMultipleObjCompleter}
+    } ## end Foreach-Object
+
+    ## RDS cmdlets with -DBInstanceIdentifier parameter
+    Write-Output DBInstanceIdentifier | Foreach-Object {
+        ## if there are any commands with this parameter name, register an argument completer for them
+        if ($arrCommandsWithThisParam = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName $_ -Noun RDS* -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $_ -ScriptBlock $sbMultipleObjCompleter}
     } ## end Foreach-Object
 
     ## for all of the IAM cmdlets with parameter names like these param name wildcard strings
