@@ -14,7 +14,29 @@
 
 ## Register-VNAWSArgumentCompleter
 ### v1.3.0, Jan 2022
-- Speed up registering of AWS completers (feature request in [Issue #16](https://github.com/vNugglets/PowerShellArgumentCompleters/issues/16))
+- Sped up registering of AWS completers (feature request in [Issue #16](https://github.com/vNugglets/PowerShellArgumentCompleters/issues/16))
+- Added argument completers for the following cmdlets/parameters (feature request in [Issue #13](https://github.com/vNugglets/PowerShellArgumentCompleters/issues/13)):
+
+| Parameter | NumNewCompletions | Notes |
+|-----------|-------------------|-------|
+`-RoleArn` | 147 | for cmdlets across several AWS services
+`-RepositoryName` | 42 | for cmdlets `Get-Command -ParameterName RepositoryName -Noun ECR*`
+`-RegistryId` | 46 | for cmdlets `Get-Command -ParameterName RegistryId`
+`-VpcId` | 72 | and for variations of param named  `EndpointDetails_VpcId`, `VPC_VPCId`, `VpcConfig_VpcId`, `VpcConfiguration_VpcId`, `VpcId`, `VPCSettings_VpcId`
+`-KeyName` | 4 | for `Get-EC2KeyPair`, `New-ASLaunchConfiguration`, `New-EC2Instance`, `Remove-EC2KeyPair`
+`-GroupName` | 15 | for aguments of type IAMGroup, for cmdlets in `AWS.Tools.IdentityManagement`
+`-PolicyArn` | 18 | for cmdlets in `AWS.Tools.IdentityManagement`
+`-GroupId` | 14 | for noun `EC2*`; and, as a bonus feature, can type group _name_ for value of word to complete, the completer will get matching SecurityGroups, and present list of SG IDs (with tooltips that include group name)
+`-UserName` | 47 | for cmdlets in `AWS.Tools.IdentityManagement`
+`-MetricName` | 12 | for cmdlets in `AWS.Tools.CloudWatchLogs`, `AWS.Tools.CloudWatch`
+`-NameSpace` | 10 | for cmdlets in `AWS.Tools.CloudWatchLogs`, `AWS.Tools.CloudWatch`
+`-Cluster` | 32 | for cmdlets in `AWS.Tools.ECS`
+`-AssociationId` | 8 | for cmdlets in `AWS.Tools.SimpleSystemsManagement`
+`-VaultName` | 25 | for cmdlets in `AWS.Tools.Glacier`
+`-FileSystemId` | 28 | for cmdlets in `AWS.Tools.ElasticFileSystem`, `AWS.Tools.FSx` (yes, different completion types)
+`-EventBusName` | 24 | all such cmdlets are for CloudWatch Events (CWE) / EventBridge (EVB) things
+`-SubnetId` | 110 | for cmdlets with variations of param named `*SubnetId*`
+`DBInstanceIdentifier` | 22 | for cmdlets in at least `AWS.Tools.RDS`
 
 ### v1.2.0, Dec 2021
 - added completer for arguments for parameter `-Service` for cmdlets `Get-AWSCmdletName`, `Get-AWSService` (feature request in [Issue #9](https://github.com/vNugglets/PowerShellArgumentCompleters/issues/9))
