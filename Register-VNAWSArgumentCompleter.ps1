@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.3.0
+.VERSION 1.3.1
 
 .GUID bc73fa4a-6436-4524-b722-e7b3a98fdfac
 
@@ -18,7 +18,7 @@
 
 .ICONURI https://avatars0.githubusercontent.com/u/22530966
 
-.EXTERNALMODULEDEPENDENCIES
+.EXTERNALMODULEDEPENDENCIES 
 
 .REQUIREDSCRIPTS
 
@@ -29,7 +29,11 @@ See ReadMe and other docs at https://github.com/vNugglets/PowerShellArgumentComp
 
 .PRIVATEDATA
 
-#>
+#> 
+
+
+
+
 
 
 
@@ -37,7 +41,7 @@ See ReadMe and other docs at https://github.com/vNugglets/PowerShellArgumentComp
 
 <#
 
-.DESCRIPTION
+.DESCRIPTION 
 Script to register PowerShell argument completers for many parameters for many AWS.Tools.* (and AWSPowerShell*) cmdlets, making us even more productive on the command line. This enables the tab-completion of actual AWS inventory objects' names as values to parameters to AWS cmdlets -- neat!
 
 .Example
