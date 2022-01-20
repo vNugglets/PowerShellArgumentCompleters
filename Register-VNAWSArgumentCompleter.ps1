@@ -113,27 +113,6 @@ process {
 
 
 
-
-    ## completer scriptblock for -RegistryId
-    $sbRegistryIdCompleter = {
-        param($commandName, $parameterName, $wordToComplete, $commandAst, $commandBoundParameter)
-
-        Get-ECRRegistry | Sort-Object -Property RegistryId | Foreach-Object {
-            New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
-                $_.RegistryId    # CompletionText
-            )
-        } ## end Foreach-Object
-    } ## end scriptblock
-
-    Write-Output RegistryId | Foreach-Object {
-        ## if there are any commands with this parameter name, register an argument completer for them
-        if ($arrCommandsWithThisParam = Get-Command -ParameterName $_ -Module AWSPowerShell*, AWS.Tools.* -ErrorAction:SilentlyContinue) {
-            Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $_ -ScriptBlock $sbRegistryIdCompleter
-        } ## end if
-    } ## end Foreach-Object
-
-
-
     ## Completer for things like VPCId, EC2 KeyName, lots more
     $sbMultipleObjCompleter = {
         param($commandName, $parameterName, $wordToComplete, $commandAst, $commandBoundParameter)
@@ -376,6 +355,9 @@ process {
                 if ($commandBoundParameter.ContainsKey("Namespace")) {$hshParamForGet["NameSpace"] = $commandBoundParameter["NameSpace"]}
                 break
             } ## end case
+            "RegistryId" {
+                $strCmdletForGet = "Get-ECRRegistry"
+            }
         } ## end switch
 
         & $strCmdletForGet @hshParamForGet | Foreach-Object {if (-not [System.String]::IsNullOrEmpty($wordToComplete)) {if ($_.$strPropertyNameOfInterest -like "${wordToComplete}*") {$_}} else {$_}} | Sort-Object -Property $strPropertyNameOfInterest | Foreach-Object {
@@ -389,6 +371,14 @@ process {
         ## if there are any commands with this parameter name, register an argument completer for them
         if ($arrCommandsWithThisParam = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName $_ -Noun CW* -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $_ -ScriptBlock $sbObjCompleter_NoToolTip}
     } ## end Foreach-Object
+    ## for ECR RegistryId
+    Write-Output RegistryId | Foreach-Object {
+        ## if there are any commands with this parameter name, register an argument completer for them
+        if ($arrCommandsWithThisParam = Get-Command -ParameterName $_ -Module AWSPowerShell*, AWS.Tools.* -ErrorAction:SilentlyContinue) {
+            Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $_ -ScriptBlock $sbObjCompleter_NoToolTip
+        } ## end if
+    } ## end Foreach-Object
+
 
 
 
