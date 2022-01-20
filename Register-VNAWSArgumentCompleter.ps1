@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.3.0
+.VERSION 1.3.1
 
 .GUID bc73fa4a-6436-4524-b722-e7b3a98fdfac
 
@@ -30,6 +30,10 @@ See ReadMe and other docs at https://github.com/vNugglets/PowerShellArgumentComp
 .PRIVATEDATA
 
 #> 
+
+
+
+
 
 
 
@@ -112,92 +116,6 @@ process {
     } ## end Foreach-Object
 
 
-    ## ARN completer
-    $sbARNCompleter = {
-        param($commandName, $parameterName, $wordToComplete, $commandAst, $commandBoundParameter)
-        ## any parameters to pass on through to the Get-* cmdlet (like ProfileName, for example)
-        $hshParamForGet = @{}
-        if ($commandBoundParameter.ContainsKey("ProfileName")) {$hshParamForGet["ProfileName"] = $commandBoundParameter.ProfileName}
-
-        ## the property of returned objects that is of interest
-        $strPropertyNameOfInterest = "Arn"  ## the property name that corrsponds to the
-        $strPropertyNameOfInterest_CreationDate = "CreateDate"  ## the property name that corresponds to when the object was created (not consistent across all objects)
-        ## string to include in tooltip for creation / last modified text
-        $strAddlInfoDescriptor = "Created"
-        $strCmdletForGet = Switch ($parameterName) {
-            "RoleArn" {"Get-IAMRoleList"; break}
-        }
-        & $strCmdletForGet @hshParamForGet | Foreach-Object {if (-not [System.String]::IsNullOrEmpty($wordToComplete)) {if ($_.$strPropertyNameOfInterest -like "${wordToComplete}*") {$_}} else {$_}} | Sort-Object -Property $strPropertyNameOfInterest | Foreach-Object {
-            $strCompletionText = if ($_.$strPropertyNameOfInterest -match "\s") {'"{0}"' -f $_.$strPropertyNameOfInterest} else {$_.$strPropertyNameOfInterest}
-            New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
-                $strCompletionText,    # CompletionText
-                $_.$strPropertyNameOfInterest,    # ListItemText
-                [System.Management.Automation.CompletionResultType]::ParameterValue,    # ResultType
-                ([PSCustomObject][Ordered]@{$strAddlInfoDescriptor = $_.$strPropertyNameOfInterest_CreationDate; Description = $_.Description} | Format-List | Out-String)    # ToolTip
-            )
-        } ## end Foreach-Object
-    } ## end scriptblock
-
-    Write-Output RoleArn | Foreach-Object {
-        ## if there are any commands with this parameter name, register an argument completer for them
-        if ($arrCommandsWithThisParam = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName $_ -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $_ -ScriptBlock $sbARNCompleter}
-    } ## end Foreach-Object
-
-
-
-    ## ECR Repository completer
-    $sbECRRepositoryCompleter = {
-        param($commandName, $parameterName, $wordToComplete, $commandAst, $commandBoundParameter)
-        ## any parameters to pass on through to the Get-* cmdlet (like ProfileName, for example)
-        $hshParamForGet = @{}
-        if ($commandBoundParameter.ContainsKey("ProfileName")) {$hshParamForGet["ProfileName"] = $commandBoundParameter.ProfileName}
-
-        ## the property of returned objects that is of interest
-        $strPropertyNameOfInterest = "RepositoryName"  ## the property name that corrsponds to the
-        $strPropertyNameOfInterest_CreationDate = "CreatedAt"  ## the property name that corresponds to when the object was created (not consistent across all objects)
-        ## string to include in tooltip for creation / last modified text
-        $strAddlInfoDescriptor = "CreatedAt"
-        $strCmdletForGet = "Get-ECRRepository"
-
-        & $strCmdletForGet @hshParamForGet | Foreach-Object {if (-not [System.String]::IsNullOrEmpty($wordToComplete)) {if ($_.$strPropertyNameOfInterest -like "${wordToComplete}*") {$_}} else {$_}} | Sort-Object -Property $strPropertyNameOfInterest | Foreach-Object {
-            $strCompletionText = if ($_.$strPropertyNameOfInterest -match "\s") {'"{0}"' -f $_.$strPropertyNameOfInterest} else {$_.$strPropertyNameOfInterest}
-            New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
-                $strCompletionText,    # CompletionText
-                $_.$strPropertyNameOfInterest,    # ListItemText
-                [System.Management.Automation.CompletionResultType]::ParameterValue,    # ResultType
-                ([PSCustomObject][Ordered]@{RepositoryUri = $_.RepositoryUri; $strAddlInfoDescriptor = $_.$strPropertyNameOfInterest_CreationDate} | Format-List | Out-String)    # ToolTip
-            )
-        } ## end Foreach-Object
-    } ## end scriptblock
-
-    Write-Output RepositoryName | Foreach-Object {
-        ## if there are any commands with this parameter name, register an argument completer for them
-        if ($arrCommandsWithThisParam = Get-Command -ParameterName $_ -Noun ECR* -Module AWSPowerShell*, AWS.Tools.* -ErrorAction:SilentlyContinue) {
-            Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $_ -ScriptBlock $sbECRRepositoryCompleter
-        } ## end if
-    } ## end Foreach-Object
-
-
-
-    ## completer scriptblock for -RegistryId
-    $sbRegistryIdCompleter = {
-        param($commandName, $parameterName, $wordToComplete, $commandAst, $commandBoundParameter)
-
-        Get-ECRRegistry | Sort-Object -Property RegistryId | Foreach-Object {
-            New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList (
-                $_.RegistryId    # CompletionText
-            )
-        } ## end Foreach-Object
-    } ## end scriptblock
-
-    Write-Output RegistryId | Foreach-Object {
-        ## if there are any commands with this parameter name, register an argument completer for them
-        if ($arrCommandsWithThisParam = Get-Command -ParameterName $_ -Module AWSPowerShell*, AWS.Tools.* -ErrorAction:SilentlyContinue) {
-            Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $_ -ScriptBlock $sbRegistryIdCompleter
-        } ## end if
-    } ## end Foreach-Object
-
-
 
     ## Completer for things like VPCId, EC2 KeyName, lots more
     $sbMultipleObjCompleter = {
@@ -269,6 +187,18 @@ process {
                 $arrPropertiesToSelect = Write-Output PolicyName DefaultVersionId UpdateDate AttachmentCount Description
                 break
             }
+            "RoleArn" {
+                $strPropertyNameOfInterest = "Arn"
+                $strCmdletForGet = "Get-IAMRoleList"
+                $arrPropertiesToSelect = Write-Output CreateDate Description Path RoleLastUsed
+                break
+            }
+            "RepositoryName" {
+                $strPropertyNameOfInterest = "RepositoryName"
+                $strCmdletForGet = "Get-ECRRepository"
+                $arrPropertiesToSelect = Write-Output RepositoryUri CreatedAt
+                break
+            }
             {$_ -match "SubnetId"} {
                 $strPropertyNameOfInterest = "SubnetId"
                 $strCmdletForGet = "Get-EC2Subnet"
@@ -307,7 +237,7 @@ process {
     } ## end scriptblock
 
     ## for all of the cmdlets with parameter names like these param name wildcard strings
-    $arrAllCmdsOfInterest = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName ($arrParamNames = Write-Output EndpointDetails_VpcId, VPC_VPCId, VpcConfig_VpcId, VpcConfiguration_VpcId, VpcId, VPCSettings_VpcId, Cluster, EventBusName, *SubnetId*, VaultName, FileSystemId) -ErrorAction:SilentlyContinue
+    $arrAllCmdsOfInterest = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName ($arrParamNames = Write-Output EndpointDetails_VpcId, VPC_VPCId, VpcConfig_VpcId, VpcConfiguration_VpcId, VpcId, VPCSettings_VpcId, Cluster, EventBusName, *SubnetId*, VaultName, FileSystemId, RoleArn) -ErrorAction:SilentlyContinue
     ## for each full parameter name from all the interesting cmdlets' params that are like the param wildcard from the param name array, register arg completer
     (($arrAllCmdsOfInterest.Parameters.Keys | Group-Object -NoElement).Name.Where({$strThisParamName = $_; $arrParamNames.Where({$strThisParamName -like $_})}) | Group-Object -NoElement).Name | ForEach-Object {
         $strThisParamName = $_
@@ -345,6 +275,15 @@ process {
         ## if there are any commands with this param, register the arg completer for them for this param
         if (($arrCommandsWithThisParam | Measure-Object).Count -gt 0) {Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $strThisParamName -ScriptBlock $sbMultipleObjCompleter}
     } ## end foreach-object
+
+    ## for all of the ECR cmdlets with the given parameter name(s)
+    Write-Output RepositoryName | Foreach-Object {
+        ## if there are any commands with this parameter name, register an argument completer for them
+        if ($arrCommandsWithThisParam = Get-Command -ParameterName $_ -Noun ECR* -Module AWSPowerShell*, AWS.Tools.* -ErrorAction:SilentlyContinue) {
+            Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $_ -ScriptBlock $sbMultipleObjCompleter
+        } ## end if
+    } ## end Foreach-Object
+
 
 
 
@@ -420,6 +359,9 @@ process {
                 if ($commandBoundParameter.ContainsKey("Namespace")) {$hshParamForGet["NameSpace"] = $commandBoundParameter["NameSpace"]}
                 break
             } ## end case
+            "RegistryId" {
+                $strCmdletForGet = "Get-ECRRegistry"
+            }
         } ## end switch
 
         & $strCmdletForGet @hshParamForGet | Foreach-Object {if (-not [System.String]::IsNullOrEmpty($wordToComplete)) {if ($_.$strPropertyNameOfInterest -like "${wordToComplete}*") {$_}} else {$_}} | Sort-Object -Property $strPropertyNameOfInterest | Foreach-Object {
@@ -433,6 +375,14 @@ process {
         ## if there are any commands with this parameter name, register an argument completer for them
         if ($arrCommandsWithThisParam = Get-Command -Module AWSPowerShell*, AWS.Tools.* -ParameterName $_ -Noun CW* -ErrorAction:SilentlyContinue) {Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $_ -ScriptBlock $sbObjCompleter_NoToolTip}
     } ## end Foreach-Object
+    ## for ECR RegistryId
+    Write-Output RegistryId | Foreach-Object {
+        ## if there are any commands with this parameter name, register an argument completer for them
+        if ($arrCommandsWithThisParam = Get-Command -ParameterName $_ -Module AWSPowerShell*, AWS.Tools.* -ErrorAction:SilentlyContinue) {
+            Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $_ -ScriptBlock $sbObjCompleter_NoToolTip
+        } ## end if
+    } ## end Foreach-Object
+
 
 
 

@@ -1,7 +1,7 @@
 ## config file for creating/update PowerShell ScriptInfo for given script file (via the New-ScriptFileInfo, Update-ScriptFileInfo cmdlets)
 ## for script Register-VNVMwarePowerCLIArgumentCompleter.ps1
 @{
-	Version = "1.3.0"
+	Version = "1.3.1"
 	Author = "Matt Boren (@mtboren)"
 	CompanyName = 'vNugglets'
 	Copyright = "MIT License"
