@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.3.1
+.VERSION 1.3.2
 
 .GUID bc73fa4a-6436-4524-b722-e7b3a98fdfac
 
@@ -30,6 +30,8 @@ See ReadMe and other docs at https://github.com/vNugglets/PowerShellArgumentComp
 .PRIVATEDATA
 
 #> 
+
+
 
 
 
@@ -170,6 +172,11 @@ process {
                     }
                 } ## end switch
             }
+            "Group" {
+                $strPropertyNameOfInterest = "Name"
+                $sbToGetDesiredObjects = {Get-RGGroupList | ForEach-Object {Get-RGGroup -Group $_.GroupName}}
+                $arrPropertiesToSelect = Write-Output Description
+            }
             "GroupName" {
                 $strPropertyNameOfInterest = "GroupName"
                 $strCmdletForGet = "Get-IAMGroupList"
@@ -280,6 +287,14 @@ process {
     Write-Output RepositoryName | Foreach-Object {
         ## if there are any commands with this parameter name, register an argument completer for them
         if ($arrCommandsWithThisParam = Get-Command -ParameterName $_ -Noun ECR* -Module AWSPowerShell*, AWS.Tools.* -ErrorAction:SilentlyContinue) {
+            Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $_ -ScriptBlock $sbMultipleObjCompleter
+        } ## end if
+    } ## end Foreach-Object
+
+    ## for all of the RG cmdlets with the given parameter name(s)
+    Write-Output Group | Foreach-Object {
+        ## if there are any commands with this parameter name, register an argument completer for them
+        if ($arrCommandsWithThisParam = Get-Command -ParameterName $_ -Module AWS.Tools.ResourceGroups -ErrorAction:SilentlyContinue) {
             Register-ArgumentCompleter -CommandName $arrCommandsWithThisParam -ParameterName $_ -ScriptBlock $sbMultipleObjCompleter
         } ## end if
     } ## end Foreach-Object

@@ -13,6 +13,8 @@
 - see [Issue #11, Add completers for ActiveDirectory module cmdlets](https://github.com/vNugglets/PowerShellArgumentCompleters/issues/11) and the [ReadMe.md](./ReadMe.md) here for other details
 
 ## Register-VNAWSArgumentCompleter
+### v1.3.2, Feb 2022
+- Add completers for AWS ResourceGroup items (feature request in [Issue #21](https://github.com/vNugglets/PowerShellArgumentCompleters/issues/21))
 ### v1.3.1, Jan 2022
 - Internal optimization/simplification of completers (feature request in [Issue #18](https://github.com/vNugglets/PowerShellArgumentCompleters/issues/18))
 ### v1.3.0, Jan 2022
